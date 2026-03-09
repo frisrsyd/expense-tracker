@@ -1,0 +1,2822 @@
+{
+  "name": "Expense Tracker Pro - Multi Channel",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "id": "3a970bd7-e1cc-46e3-992d-4b0634c0238b",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -8736,
+        2896
+      ],
+      "webhookId": "wa-webhook-id",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "userIds": "frisrsyd"
+        }
+      },
+      "id": "285b0905-f2d9-4091-966a-fb2e0796ce7f",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -8736,
+        3088
+      ],
+      "webhookId": "83f1ddf4-bc0c-4735-964c-2f2260f3db64",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZbU40jBmvjhBVd3d",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "expense-tracker",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cdb7f39d-00a3-415a-82c4-e789a98d2b58",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -8736,
+        3696
+      ],
+      "webhookId": "webhook-expense-tracker"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e2b75318-848a-4dfb-ad6d-61a0f39c44ec",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -8736,
+        4128
+      ],
+      "webhookId": "chat-trigger-expense"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst sessionId = input.sessionId || input.chatId || 'chat-' + Date.now();\nconst messageText = input.chatInput || input.message || input.text || '';\n\nreturn [{\n  json: {\n    userId: sessionId,\n    userName: 'Chat User',\n    messageText,\n    mediaUrl: null,\n    mediaType: 'text',\n    channel: 'chat',\n    sessionId,\n    rawPayload: input\n  }\n}];"
+      },
+      "id": "2926467a-5e39-41c8-9517-d345ff266ba3",
+      "name": "Normalize Chat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8512,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const entry = $input.first().json;\nconst value = entry.entry?.[0]?.changes?.[0]?.value || {};\nconst contacts = value.contacts || [];\nconst messages = value.messages || [];\n\nif (!messages.length) return [];\n\nconst msg = messages[0];\nconst contact = contacts[0] || {};\n\nlet mediaUrl = null;\nlet mediaType = 'text';\nlet messageText = null;\n\nif (msg.type === 'text') {\n  messageText = msg.text?.body || '';\n} else if (msg.type === 'image') {\n  mediaType = 'image';\n  mediaUrl = msg.image?.id || null;\n  messageText = msg.image?.caption || '';\n} else if (msg.type === 'document') {\n  mediaType = 'pdf';\n  mediaUrl = msg.document?.id || null;\n  messageText = msg.document?.caption || '';\n}\n\nreturn [{\n  json: {\n    userId: contact.wa_id || msg.from || '',\n    userName: contact.profile?.name || '',\n    messageText,\n    mediaUrl,\n    mediaType,\n    channel: 'whatsapp',\n    rawPayload: entry\n  }\n}];"
+      },
+      "id": "4471ee94-2cd8-4083-a9cb-07ad5b40146f",
+      "name": "Normalize WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8512,
+        2896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = $input.first().json;\nconst msg = update.message || {};\nconst chat = msg.chat || {};\nconst from = msg.from || {};\n\nlet mediaUrl = null;\nlet mediaType = 'text';\nlet messageText = msg.text || '';\n\nif (msg.photo && msg.photo.length > 0) {\n  mediaType = 'image';\n  mediaUrl = msg.photo[msg.photo.length - 1].file_id;\n  messageText = msg.caption || '';\n} else if (msg.document) {\n  const mime = msg.document.mime_type || '';\n  mediaType = mime.includes('pdf') ? 'pdf' : 'image';\n  mediaUrl = msg.document.file_id;\n  messageText = msg.caption || '';\n}\n\nreturn [{\n  json: {\n    userId: String(chat.id || ''),\n    userName: [from.first_name, from.last_name].filter(Boolean).join(' '),\n    messageText,\n    mediaUrl,\n    mediaType,\n    channel: 'telegram',\n    rawPayload: update\n  }\n}];"
+      },
+      "id": "03813870-0513-4d01-8395-89ea7f06c782",
+      "name": "Normalize Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8512,
+        3088
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nreturn [{\n  json: {\n    userId: body.userId || body.user_id || '',\n    userName: body.userName || body.user_name || '',\n    messageText: body.text || body.message || '',\n    mediaUrl: body.mediaUrl || body.media_url || null,\n    mediaType: body.mediaType || body.media_type || 'text',\n    channel: 'webhook',\n    rawPayload: body\n  }\n}];"
+      },
+      "id": "419daae1-a1e2-49f9-8da2-86ee0e2d8fad",
+      "name": "Normalize Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8512,
+        3696
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.MASTER_REGISTRY_ID || 'YOUR_MASTER_REGISTRY_SPREADSHEET_ID' }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Profiles"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "=userId",
+              "lookupValue": "={{ $json.userId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d4e3605d-1fd8-4c06-a6cf-610ff6cca54e",
+      "name": "Lookup User Profile",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -8288,
+        4032
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst lookupResults = $('Lookup User Profile').all() || [];\nconst normalized = $('Normalize Telegram').all().concat(\n  // $('Normalize WhatsApp').all(),\n  // $('Normalize Webhook').all()\n);\nconst msg = normalized.find(n => n.json.userId || n.json.id || n.json.profileId || n.json.chatId || n.json.phone) || { json: {} };\n\nconsole.log('lookupResults:', JSON.stringify(lookupResults, null, 2));\nconsole.log('normalized:', JSON.stringify(normalized, null, 2));\nconsole.log('msg:', JSON.stringify(msg, null, 2));\n\nfunction getId(item) {\n  if (!item || !item.json) return undefined;\n  const candidates = [\n    item.json.userId,\n    item.json.user_id,\n    item.json.id,\n    item.json.profileId,\n    item.json.profile_id,\n    item.json.telegramId,\n    item.json.chatId,\n    item.json.phone,\n    item.json.from,\n    (item.json.payload && item.json.payload.userId)\n  ];\n  for (const c of candidates) {\n    if (c !== undefined && c !== null && c !== '') return String(c).trim();\n  }\n  return undefined;\n}\n\nconst msgId = getId(msg);\nconsole.log('msgId:', msgId);\n\nconst userRow = lookupResults.find(r => {\n  const rid = getId(r);\n  return rid && msgId && rid === msgId;\n});\n\nconsole.log('userRow:', JSON.stringify(userRow, null, 2));\n\nif (!userRow) {\n  return [{ json: { ...msg.json, isNew: true, isAwaiting: false, profileData: null } }];\n}\n\nif (userRow.json.state === 'awaitingProfileName') {\n  return [{ json: { ...msg.json, isNew: false, isAwaiting: true, profileData: userRow.json } }];\n}\n\nreturn [{ json: { ...msg.json, isNew: false, isAwaiting: false, profileData: userRow.json } }];"
+      },
+      "id": "bf73e67d-6c90-4c48-a39f-28cb3068e6e3",
+      "name": "Check Awaiting Profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8064,
+        3728
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "905ef719-d779-4564-b553-13d1381e046b",
+                    "leftValue": "={{ $json.profileData.spreadsheetId }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isNew }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    },
+                    "id": "8f0f3b0f-7d2a-4932-92ed-0bd82045de8c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isAwaiting }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    },
+                    "id": "4b6fdfdc-d4a1-42b1-81d5-ddc38c0f7e21"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1ab49681-002d-4372-ab7d-9f5d766f1452",
+                    "leftValue": "={{ $json.isAwaiting }}",
+                    "rightValue": "false",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "81f9d51a-72d3-408b-9320-416a2a517d93",
+      "name": "Route User State",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -7840,
+        3696
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nreturn [{\n  json: {\n    ...msg,\n    replyText: '👋 Welcome! I\\'m your expense tracker bot. What name would you like for your profile?',\n    action: 'askProfileName',\n    state: 'awaitingProfileName'\n  }\n}];"
+      },
+      "id": "b66e2983-c623-414b-a5ef-ba026197e06a",
+      "name": "Ask Profile Name",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7552,
+        3536
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"title\": \"Expense Tracker - {{ $json.messageText }}\"\n  },\n  \"sheets\": [\n    { \"properties\": { \"title\": \"Dashboard\", \"index\": 0 } },\n    { \"properties\": { \"title\": \"Recurring\", \"index\": 1 } },\n    { \"properties\": { \"title\": \"{{ $now.format('MMM-yyyy') }}\", \"index\": 2 } }\n  ]\n}",
+        "options": {}
+      },
+      "id": "631482f8-518b-4b8e-966e-9c5925895829",
+      "name": "Create User Spreadsheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6592,
+        3984
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const spreadsheetId = $input.first().json.spreadsheetId;\nconst profileName = $('Route User State').first().json.messageText;\nconst categories = [\n  'Makanan & Minuman', 'Transportasi', 'Tagihan', 'Hiburan',\n  'Belanja', 'Kesehatan', 'Langganan', 'Lain-lain'\n];\n\nreturn categories.map(cat => ({\n  json: {\n    spreadsheetId,\n    profileName,\n    Category: cat,\n    Budget: 0,\n    'Spent This Month': 0,\n    Remaining: 0\n  }\n}));"
+      },
+      "id": "85681f11-e29d-45eb-aa87-8b80fb951331",
+      "name": "Setup Dashboard Headers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6368,
+        3984
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Dashboard"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Category": "={{ $json.Category }}",
+            "Budget": "={{ $json.Budget }}",
+            "Spent This Month": "={{ $json['Spent This Month'] }}",
+            "Remaining": "={{ $json.Remaining }}",
+            "spreadsheetId": "={{ $json.spreadsheetId }}",
+            "profileName": "={{ $json.profileName }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "spreadsheetId",
+              "displayName": "spreadsheetId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "profileName",
+              "displayName": "profileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Spent This Month",
+              "displayName": "Spent This Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Remaining",
+              "displayName": "Remaining",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "bd3ad0cf-f77e-48a9-9c42-9b7f40d34c69",
+      "name": "Write Dashboard Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -6144,
+        3888
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}/values/{{ encodeURIComponent($now.format('MMM-yyyy')) }}!A1:append?valueInputOption=USER_ENTERED",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"values\": [\n    [\"Date\", \"Description\", \"Category\", \"Amount\", \"Currency\", \"Split With\", \"Recurring\", \"Notes\"]\n  ]\n}",
+        "options": {}
+      },
+      "id": "145bdbef-0d72-47ea-8e21-a1d51624a3ab",
+      "name": "Setup Month Sheet Headers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6144,
+        4080
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $('Route User State').first().json;\nconst profileName = msg.messageText;\nreturn [{\n  json: {\n    ...msg,\n    replyText: `✅ Profile \"${profileName}\" created! Your expense tracker spreadsheet is ready.\\n\\nYou can now:\\n• Send expenses: \"Lunch 45k\"\\n• Check budget: \"Check my budget\"\\n• Get reports: \"Monthly report\"\\n• Set budget: \"Set food budget 500k\"\\n\\nSend any expense to get started!`,\n    action: 'registrationComplete'\n  }\n}];"
+      },
+      "id": "aede0379-c7a7-42bf-9ca3-dd8ecbadaae2",
+      "name": "Send Registration Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        3888
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-spreadsheetId",
+              "name": "spreadsheetId",
+              "value": "={{ $json.profileData.spreadsheetId }}",
+              "type": "string"
+            },
+            {
+              "id": "set-profileName",
+              "name": "profileName",
+              "value": "={{ $json.profileData.profileName }}",
+              "type": "string"
+            },
+            {
+              "id": "set-language",
+              "name": "language",
+              "value": "={{ $json.profileData.language }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e2436d67-3a80-4a69-a2e3-bab5fbd9f8eb",
+      "name": "Merge User Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -8736,
+        2464
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mediaType }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a938f093-65e5-4859-b253-968420a6350b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mediaType }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c6199cb-a40a-4063-a526-1633791ca386"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "71d4ded6-ca96-4fa3-a182-c67f6237af30",
+                    "leftValue": "={{ $json.mediaType }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3f606315-a9af-4f6c-aec7-862af901bcab",
+      "name": "Detect Media Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -8512,
+        2464
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.channel === 'telegram' ? 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/getFile?file_id=' + $json.mediaUrl : $json.mediaUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "6e85f9cb-3907-405f-ac4d-d0cbffb8bca9",
+      "name": "Download Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -8288,
+        2464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst binary = $input.first().binary;\n\nreturn [{\n  json: {\n    ...input,\n    messageText: (input.messageText || '') + '\\n[Attached: ' + input.mediaType + ' file - please extract all expense items from this receipt/document]',\n    hasMedia: true,\n    mediaProcessed: true\n  },\n  binary\n}];"
+      },
+      "id": "6ebf3d61-4d48-4a05-ae8c-633564401f5e",
+      "name": "Process with Vision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8064,
+        2464
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $env.MODEL_PROVIDER }}",
+                    "rightValue": "openai",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9ce34b30-5119-42d2-a663-8b12a6a3b36a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $env.MODEL_PROVIDER }}",
+                    "rightValue": "ollama",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "95c4bbac-930d-4524-8f60-51de6f5b14b4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $env.MODEL_PROVIDER }}",
+                    "rightValue": "groq",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "db639ea9-997a-4695-af89-6266b4669b46"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2603224-6898-4fda-9e45-e7f5473bb2fa",
+      "name": "Select Model Provider",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -7840,
+        2432
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "fdf875af-c8b0-4375-b115-fa11c66852b0",
+      "name": "AI Agent (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -7616,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "e90f0369-a6e7-4136-be16-ca04656a0955",
+      "name": "AI Agent (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -7616,
+        3104
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "aa310de9-1387-47db-b184-556586fda19d",
+      "name": "AI Agent (Ollama)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -7616,
+        2304
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "---\nname: expense-tracker-pro\ndescription: Lacak pengeluaran lewat bahasa alami, dapatkan ringkasan pengeluaran, atur anggaran\nauthor: clawd-team\nversion: 1.0.0\ntriggers:\n  - \"catat pengeluaran\"\n  - \"lacak pengeluaran\"\n  - \"apa yang saya belanjakan\"\n  - \"cek anggaran\"\n  - \"laporan pengeluaran\"\n---\n\n# Pelacak Pengeluaran Pro\n\nLacak pengeluaran kamu lewat obrolan biasa. Gak perlu aplikasi atau spreadsheet — cukup bilang ke Clawd apa yang kamu belanjakan.\n\n## Apa yang bisa dilakukan\n\nMencatat pengeluaran dari bahasa sehari-hari (\"Saya menghabiskan Rp 45.000 untuk bahan makanan\"), mengkategorikan otomatis, melacak terhadap anggaran, dan memberi ringkasan pengeluaran kapan pun kamu minta. Semua data disimpan secara lokal di perangkat kamu.\n\n## Cara pakai\n\n**Catat pengeluaran:**\n\n```\n\"Saya menghabiskan Rp 23.500 untuk makan siang\"\n\"Rp 150.000 untuk tagihan listrik\"\n\"Kopi Rp 4.750\"\n```\n\n**Cek pengeluaran:**\n\n```\n\"Berapa pengeluaran saya minggu ini?\"\n\"Tunjukkan pengeluaran makanan saya bulan ini\"\n\"Apakah saya sudah melebihi anggaran hiburan?\"\n```\n\n**Atur anggaran:**\n\n```\n\"Tentukan anggaran bahan makanan Rp 400.000 per bulan\"\n\"Atur anggaran Rp 100.000 untuk hiburan\"\n```\n\n**Dapatkan laporan:**\n\n```\n\"Ringkasan pengeluaran bulanan\"\n\"Bandingkan pengeluaran dengan bulan lalu\"\n\"Ekspor pengeluaran ke CSV\"\n```\n\n## Kategori\n\nDideteksi otomatis dari konteks:\n\n- Makanan & Minuman\n- Transportasi\n- Tagihan\n- Hiburan\n- Belanja\n- Kesehatan\n- Langganan\n- Lain-lain\n\nMisal tentukan kategori: \"Menghabiskan Rp 50.000 untuk nasi goreng, kategori: Makanan\"\n\n## Tips\n\n- Cantumkan jumlah dengan jelas supaya pencatatan akurat\n- Tulis \"berulang\" untuk langganan: \"Rp 15.000 Netflix, berulang tiap bulan\"\n- Tanyakan \"tren pengeluaran\" untuk melihat pola dari waktu ke waktu\n\nBerikut adalah input dari user:"
+        }
+      },
+      "id": "9cc74b15-7183-418d-ac2e-624a224722a3",
+      "name": "AI Agent (Groq)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -7616,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "maxTokens": 2048,
+          "temperature": 0.2
+        }
+      },
+      "id": "e4f210c8-17c8-4f2a-b0f5-63b02ce35dde",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -7616,
+        2128
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.2
+        }
+      },
+      "id": "e0b80eb2-7fa6-4da1-ac6b-226198247717",
+      "name": "Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -7616,
+        3328
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CuVv1sBp2lTV5WXl",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3",
+        "options": {}
+      },
+      "id": "71714161-9928-448a-8ee4-cde752303581",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -7552,
+        2528
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {
+          "maxTokensToSample": 2048,
+          "temperature": 0.2
+        }
+      },
+      "id": "fc7c2a51-3060-4a15-97a9-5126b76b438e",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -7696,
+        2896
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "m5NPNO02GxojmMO8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual"
+      },
+      "id": "87a3f7f9-486f-41b4-b6c1-c4b812d5883e",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -7488,
+        2128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get AI node output (prefer first item)\nconst aiAll = $('AI Agent (Groq)').all() || [];\nconst aiItem = aiAll.length ? aiAll[0].json : (($('AI Agent (Groq)').first() || {}).json || {});\nconst originalData = ($('Merge User Context').first() || {}).json || {};\n\nfunction tryParseJsonString(s) {\n  if (typeof s !== 'string') return null;\n  const match = s.match(/(\\{[\\s\\S]*\\}|\\[[\\s\\S]*\\])/);\n  const toTry = match ? match[0] : s;\n  try {\n    return JSON.parse(toTry);\n  } catch (e) {\n    return null;\n  }\n}\n\nfunction extractIntentFromText(s) {\n  if (!s || typeof s !== 'string') return null;\n  // common patterns: \"intent\":\"value\"  or intent: value  or intent = value\n  let m = s.match(/\"intent\"\\s*[:=]\\s*\"([^\"]+)\"/i) || s.match(/intent\\s*[:=]\\s*[\"']?([a-zA-Z0-9_-]+)[\"']?/i);\n  return m ? m[1].trim() : null;\n}\n\n// Find the candidate content from different possible fields\nlet candidate = aiItem.output ?? aiItem.result ?? aiItem.response ?? aiItem.text ?? aiItem;\n\n// If candidate is an object and contains an `output` field deeper\nif (candidate && typeof candidate === 'object' && Object.keys(candidate).length === 0 && aiItem) {\n  candidate = aiItem;\n}\n\nlet parsed = null;\n\n// If candidate is string -> try parse JSON, else fallback to heuristics\nif (typeof candidate === 'string') {\n  parsed = tryParseJsonString(candidate);\n  if (!parsed) {\n    // fallback: try to detect intent and plain text reply\n    parsed = {\n      intent: extractIntentFromText(candidate) || undefined,\n      replyText: candidate.trim(),\n      raw: candidate,\n    };\n  }\n} else if (Array.isArray(candidate)) {\n  // if array, take first element that looks like object, or merge\n  const firstObj = candidate.find(el => typeof el === 'object' && el !== null);\n  parsed = firstObj ? (firstObj.output ?? firstObj) : { replyText: String(candidate) };\n} else if (typeof candidate === 'object' && candidate !== null) {\n  // object: accept as-is or unwrap nested 'output'\n  parsed = candidate.output && typeof candidate.output !== 'object' ? tryParseJsonString(candidate.output) ?? candidate.output : (candidate.output ?? candidate);\n}\n\n// Final safety: ensure parsed is an object\nif (!parsed || typeof parsed !== 'object') {\n  parsed = { intent: 'help', replyText: parsed ? String(parsed) : '', error: 'Could not parse AI response' };\n}\n\n// Derive intent and replyText robustly from multiple shapes\nconst parsedIntent =\n  parsed.intent ||\n  parsed.action ||\n  parsed.command ||\n  (parsed.result && (parsed.result.intent || parsed.result.action)) ||\n  extractIntentFromText(parsed.replyText) ||\n  'help';\n\nconst replyText =\n  parsed.replyText ||\n  parsed.text ||\n  parsed.response ||\n  (typeof parsed === 'string' ? parsed : '') ||\n  '';\n\n// Return merged result for downstream routing\nreturn [\n  {\n    json: {\n      ...originalData,\n      ...parsed,\n      parsedIntent,\n      replyText,\n      _ai_raw: aiItem,\n    },\n  },\n];"
+      },
+      "id": "c8b3f72a-b11f-48a1-9e58-2cf44ec8ffcd",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7264,
+        2608
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "record_expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f7d05d53-4de8-4d55-a5ff-fa1482d58bc6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "check_budget",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9df2b13f-3285-4037-b93c-8a2500881cf0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "set_budget",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "44e58e0a-0361-4930-acca-246506538b35"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "get_report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "60e36bdb-d02d-4845-90e3-f55ce69911bb"
+                  },
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "merge_report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f903528e-b1bf-4998-ac1f-288780cce51b"
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "split_expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8355601a-8801-4014-b6ca-6c25dbc8f682"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "list_recurring",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4c162784-088d-4452-bdb9-722ac2494a60"
+                  },
+                  {
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "cancel_recurring",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "86b4d08e-c66a-433c-921b-5520b05b85b5"
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "092b5852-79e7-4119-8f8a-8cf1a927fe77",
+                    "leftValue": "={{ $json.parsedIntent }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "160ef034-9bdc-4b1f-a47a-9061c211651b",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -7040,
+        2544
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}?fields=sheets.properties.title",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {}
+      },
+      "id": "62abdb71-afa8-4bc3-b311-aa64f43c87b4",
+      "name": "Ensure Month Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6816,
+        2352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst sheets = (response.sheets || []).map(s => s.properties.title);\nconst now = new Date();\nconst monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst monthSheet = monthNames[now.getMonth()] + '-' + now.getFullYear();\nconst originalData = $('Route by Intent').first().json;\n\nreturn [{\n  json: {\n    ...originalData,\n    monthSheet,\n    sheetExists: sheets.includes(monthSheet),\n    spreadsheetId: originalData.spreadsheetId\n  }\n}];"
+      },
+      "id": "43f728a5-3ed3-4558-87d8-1010a733944c",
+      "name": "Check and Create Month Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6592,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.sheetExists }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "486a12cd-f10f-4722-b388-ed66ed3c2d3b",
+      "name": "Create Month Sheet If Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6368,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [\n    {\n      \"addSheet\": {\n        \"properties\": {\n          \"title\": \"{{ $json.monthSheet }}\"\n        }\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "a7c81c18-3de5-48d0-b639-1a00a53638cd",
+      "name": "Create New Month Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6144,
+        2352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.monthSheet }}"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Description": "={{ $json.description }}",
+            "Category": "={{ $json.category }}",
+            "Amount": "={{ $json.amount }}",
+            "Currency": "={{ $json.currency || 'IDR' }}",
+            "Split With": "={{ $json.splitWith || '' }}",
+            "Recurring": "={{ $json.recurring || '' }}",
+            "Notes": "={{ $json.notes || '' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "03c3c787-2981-4323-a93b-15db0507b295",
+      "name": "Record Expense Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -5920,
+        2352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{\n  json: {\n    ...data,\n    replyText: data.replyText || `✅ Recorded: ${data.description} ${data.currency || 'IDR'} ${Number(data.amount).toLocaleString()} (${data.category})`\n  }\n}];"
+      },
+      "id": "209e1306-adb2-4d5d-8fe4-c7ff04292086",
+      "name": "Update Dashboard Spent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Dashboard"
+        },
+        "options": {}
+      },
+      "id": "3f352b0b-7444-49dc-94ce-e4f002a5d45a",
+      "name": "Read Budget Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -5920,
+        2592
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\nconst originalData = $('Route by Intent').first().json;\nconst category = originalData.category;\n\nlet lines = ['📊 Budget Status:\\n'];\nconst filtered = category ? rows.filter(r => r.Category === category) : rows;\n\nfor (const row of filtered) {\n  const budget = Number(row.Budget) || 0;\n  const spent = Number(row['Spent This Month']) || 0;\n  const remaining = budget - spent;\n  const status = budget > 0 ? (remaining >= 0 ? '✅' : '⚠️') : '—';\n  lines.push(`${status} ${row.Category}: Spent ${spent.toLocaleString()} / Budget ${budget.toLocaleString()} (Remaining: ${remaining.toLocaleString()})`);\n}\n\nreturn [{\n  json: {\n    ...originalData,\n    replyText: lines.join('\\n')\n  }\n}];"
+      },
+      "id": "5291c6c0-0a0f-4a3c-b3c8-01c43990ad89",
+      "name": "Format Budget Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Dashboard"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Category": "={{ $json.category }}",
+            "Budget": "={{ $json.amount }}"
+          },
+          "matchingColumns": [
+            "Category"
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c8fce34-4856-4952-9589-6ac8e1d3e0c3",
+      "name": "Set Budget Value",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -5920,
+        2784
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst originalData = $('Route by Intent').first().json;\nreturn [{\n  json: {\n    ...originalData,\n    replyText: `✅ Budget set: ${originalData.category} = ${originalData.currency || 'IDR'} ${Number(originalData.amount).toLocaleString()} per ${originalData.period || 'month'}`\n  }\n}];"
+      },
+      "id": "2ae6e7bb-ab1d-4c6b-929c-730f34a1ece7",
+      "name": "Format Budget Set Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        2784
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-') }}"
+        },
+        "options": {}
+      },
+      "id": "5236b466-db0c-408a-9b91-6a540f64117b",
+      "name": "Read Month Data for Report",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -5920,
+        3120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\nconst originalData = $('Route by Intent').first().json;\n\nconst byCategory = {};\nlet total = 0;\n\nfor (const row of rows) {\n  const cat = row.Category || 'Lain-lain';\n  const amt = Number(row.Amount) || 0;\n  byCategory[cat] = (byCategory[cat] || 0) + amt;\n  total += amt;\n}\n\nlet lines = [`📊 Expense Report (${originalData.period || 'This Month'}):\\n`];\nconst sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);\n\nfor (const [cat, amt] of sorted) {\n  const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;\n  lines.push(`• ${cat}: IDR ${amt.toLocaleString()} (${pct}%)`);\n}\n\nlines.push(`\\n💰 Total: IDR ${total.toLocaleString()}`);\nlines.push(`📝 Transactions: ${rows.length}`);\n\nreturn [{\n  json: {\n    ...originalData,\n    replyText: lines.join('\\n')\n  }\n}];"
+      },
+      "id": "a2463507-60bd-4bd0-94b0-e2ddbce7f778",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst splitWith = data.splitWith;\nconst totalAmount = Number(data.amount);\nconst shareAmount = Math.round(totalAmount / 2);\n\nreturn [{\n  json: {\n    ...data,\n    selfAmount: shareAmount,\n    otherAmount: totalAmount - shareAmount,\n    otherProfile: splitWith,\n    replyText: `✅ Split recorded: ${data.description} IDR ${totalAmount.toLocaleString()}\\n• Your share: IDR ${shareAmount.toLocaleString()}\\n• ${splitWith}'s share: IDR ${(totalAmount - shareAmount).toLocaleString()}`\n  }\n}];"
+      },
+      "id": "484fd599-605b-46f3-b9b2-4cf50dc6f6bb",
+      "name": "Handle Split Expense",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        3312
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.MASTER_REGISTRY_ID || 'YOUR_MASTER_REGISTRY_SPREADSHEET_ID' }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Profiles"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "profileName",
+              "lookupValue": "={{ $json.otherProfile }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "408c168f-ea76-4af7-a81e-c6cb8d9e2df4",
+      "name": "Lookup Split Target Profile",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -5920,
+        3312
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst targetRows = $('Lookup Split Target Profile').all();\nconst target = targetRows.find(r => r.json.profileName === data.otherProfile);\n\nif (!target) {\n  return [{\n    json: {\n      ...data,\n      replyText: `⚠️ Profile \"${data.otherProfile}\" not found. They need to register first.`\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...data,\n    targetSpreadsheetId: target.json.spreadsheetId,\n    amount: data.selfAmount\n  }\n}];"
+      },
+      "id": "7823a754-3898-4a41-ad24-fc124fde9911",
+      "name": "Record Split in Both Sheets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        3312
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{\n  json: {\n    ...data,\n    replyText: `💡 Expense Tracker Help:\\n\\n📝 Record expense:\\n• \"Lunch 45k\"\\n• \"Rp 150.000 electricity bill\"\\n• Send a receipt photo/PDF\\n\\n💰 Budget:\\n• \"Set food budget 500k\"\\n• \"Check my budget\"\\n\\n📊 Reports:\\n• \"Monthly report\"\\n• \"What did I spend this week?\"\\n\\n🔄 Recurring:\\n• \"Netflix 15k recurring monthly\"\\n• \"List recurring expenses\"\\n\\n👥 Split:\\n• \"Dinner 200k split with @ProfileName\"\\n\\n📋 Merge:\\n• \"Merge report with @ProfileName\"`\n  }\n}];"
+      },
+      "id": "f0448107-b3ac-4f44-b2f7-be6f72fbd4ed",
+      "name": "Format Help Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5696,
+        3504
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1b08b990-45a7-4b13-b402-6a3b89001da3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "telegram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "39207da1-9afd-4bef-bd0e-04411dc577bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "webhook",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "37b43640-085b-4768-aae4-78dc5dbb7518"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "chat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "458ce174-8cc5-4662-af8d-f9d3ecd06cab"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10bc4327-0e2a-4f1c-9db3-d3a121f0593b",
+      "name": "Route Reply to Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -5472,
+        2688
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.userId }}\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.replyText) }}\n  }\n}",
+        "options": {}
+      },
+      "id": "6b664167-afd6-484c-a9a9-996eaf057cca",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5248,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.userId }}",
+        "text": "={{ $json.replyText }}",
+        "additionalFields": {}
+      },
+      "id": "454e3ece-b5dd-4b49-ba83-c4ff255cefdb",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -5248,
+        2752
+      ],
+      "webhookId": "37ad53db-e853-450e-967e-6de3c3d6c238",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZbU40jBmvjhBVd3d",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, reply: $json.replyText, data: { intent: $json.parsedIntent, category: $json.category, amount: $json.amount } }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "46c366b9-7f90-4239-8e45-1001b45df490",
+      "name": "Send Webhook Reply",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -5248,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{\n  json: {\n    output: data.replyText || 'Sorry, something went wrong.',\n    sessionId: data.sessionId || data.userId\n  }\n}];"
+      },
+      "id": "960de643-86c5-4d5f-b029-52ce243fbdfd",
+      "name": "Send Chat Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5248,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nreturn [{\n  json: {\n    ...msg,\n    replyText: 'Saving your profile name...',\n    action: 'savingProfileName',\n    state: 'savingProfileName'\n  }\n}];"
+      },
+      "id": "f9298f84-58eb-4f9b-a644-9546a4639e8a",
+      "name": "Save Profile Name",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7552,
+        3744
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA",
+          "mode": "list",
+          "cachedResultName": "Expense Tracker - Master Registry",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profileName": "={{ $json.messageText }}",
+            "userId": "={{ $json.userId }}",
+            "createdDate": "={{ $json.rawPayload.message.date }}",
+            "userName": "={{ $json.userName }}",
+            "messageText": "={{ $json.messageText }}",
+            "mediaType": "={{ $json.mediaType }}",
+            "channel": "={{ $json.channel }}",
+            "mediaUrl": "={{ $json.mediaUrl }}",
+            "rawPayload": "={{ $json.rawPayload }}",
+            "language": "={{ $json.rawPayload.message.from.language_code }}",
+            "isNew": "={{ $json.isNew }}",
+            "isAwaiting": "={{ $json.isAwaiting }}",
+            "profileData": "={{ $json.profileData }}",
+            "replyText": "={{ $json.replyText }}",
+            "action": "={{ $json.action }}",
+            "state": "={{ $json.state }}"
+          },
+          "matchingColumns": [
+            "userId"
+          ],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "profileName",
+              "displayName": "profileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "spreadsheetId",
+              "displayName": "spreadsheetId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdDate",
+              "displayName": "createdDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "userName",
+              "displayName": "userName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "messageText",
+              "displayName": "messageText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mediaUrl",
+              "displayName": "mediaUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mediaType",
+              "displayName": "mediaType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rawPayload",
+              "displayName": "rawPayload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "isNew",
+              "displayName": "isNew",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "isAwaiting",
+              "displayName": "isAwaiting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "profileData",
+              "displayName": "profileData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "replyText",
+              "displayName": "replyText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -7264,
+        3648
+      ],
+      "id": "b7ee4758-5c09-413c-991b-36d66e4920b4",
+      "name": "Save Awaiting State",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA",
+          "mode": "list",
+          "cachedResultName": "Expense Tracker - Master Registry",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Trrz1H-KZzkZQzEwLszzsJHhhyCga9PomWeJywCERGA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profileName": "={{ $json.profileName }}",
+            "userId": "={{ $('Check Awaiting Profile').item.json.userId }}",
+            "createdDate": "={{ $('Check Awaiting Profile').item.json.rawPayload.message.date }}",
+            "userName": "={{ $('Check Awaiting Profile').item.json.profileData.userName }}",
+            "messageText": "={{ $('Check Awaiting Profile').item.json.messageText }}",
+            "mediaType": "={{ $('Check Awaiting Profile').item.json.mediaType }}",
+            "channel": "={{ $('Check Awaiting Profile').item.json.channel }}",
+            "mediaUrl": "={{ $('Check Awaiting Profile').item.json.mediaUrl }}",
+            "rawPayload": "={{ $('Check Awaiting Profile').item.json.rawPayload }}",
+            "language": "={{ $('Check Awaiting Profile').item.json.profileData.language }}",
+            "replyText": "=Saving your Data...",
+            "state": "={{ $('Check Awaiting Profile').item.json.profileData.state }}",
+            "spreadsheetId": "={{ $json.spreadsheetId }}"
+          },
+          "matchingColumns": [
+            "userId"
+          ],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "profileName",
+              "displayName": "profileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "spreadsheetId",
+              "displayName": "spreadsheetId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdDate",
+              "displayName": "createdDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "userName",
+              "displayName": "userName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "messageText",
+              "displayName": "messageText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mediaUrl",
+              "displayName": "mediaUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mediaType",
+              "displayName": "mediaType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rawPayload",
+              "displayName": "rawPayload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "isNew",
+              "displayName": "isNew",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "isAwaiting",
+              "displayName": "isAwaiting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "profileData",
+              "displayName": "profileData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "replyText",
+              "displayName": "replyText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -5920,
+        3888
+      ],
+      "id": "31a79c2e-1405-4d3a-bdaa-7e227560cc3a",
+      "name": "Register User in Master",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Chat": {
+      "main": [
+        [
+          {
+            "node": "Lookup User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Lookup User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Telegram": {
+      "main": [
+        [
+          {
+            "node": "Lookup User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Webhook": {
+      "main": [
+        [
+          {
+            "node": "Lookup User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup User Profile": {
+      "main": [
+        [
+          {
+            "node": "Check Awaiting Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Awaiting Profile": {
+      "main": [
+        [
+          {
+            "node": "Route User State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route User State": {
+      "main": [
+        [
+          {
+            "node": "Merge User Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask Profile Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Profile Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create User Spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Profile Name": {
+      "main": [
+        [
+          {
+            "node": "Save Awaiting State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create User Spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Setup Dashboard Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Dashboard Headers": {
+      "main": [
+        [
+          {
+            "node": "Write Dashboard Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Setup Month Sheet Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "Register User in Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Registration Complete": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge User Context": {
+      "main": [
+        [
+          {
+            "node": "Detect Media Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Media Type": {
+      "main": [
+        [
+          {
+            "node": "Download Media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Model Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Media": {
+      "main": [
+        [
+          {
+            "node": "Process with Vision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process with Vision": {
+      "main": [
+        [
+          {
+            "node": "Select Model Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Model Provider": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent (Groq)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Groq)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (OpenAI)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Ollama)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Groq)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent (OpenAI)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Ensure Month Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Budget Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Budget Value",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Month Data for Report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Split Expense",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Help Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Month Sheet": {
+      "main": [
+        [
+          {
+            "node": "Check and Create Month Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check and Create Month Sheet": {
+      "main": [
+        [
+          {
+            "node": "Create Month Sheet If Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Month Sheet If Needed": {
+      "main": [
+        [
+          {
+            "node": "Create New Month Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record Expense Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Month Sheet": {
+      "main": [
+        [
+          {
+            "node": "Record Expense Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Expense Row": {
+      "main": [
+        [
+          {
+            "node": "Update Dashboard Spent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Dashboard Spent": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Budget Data": {
+      "main": [
+        [
+          {
+            "node": "Format Budget Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Budget Reply": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Budget Value": {
+      "main": [
+        [
+          {
+            "node": "Format Budget Set Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Budget Set Reply": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Month Data for Report": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Split Expense": {
+      "main": [
+        [
+          {
+            "node": "Lookup Split Target Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Split Target Profile": {
+      "main": [
+        [
+          {
+            "node": "Record Split in Both Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Split in Both Sheets": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Help Reply": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Reply to Channel": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Webhook Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Chat Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Profile Name": {
+      "main": [
+        [
+          {
+            "node": "Save Awaiting State",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Lookup User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Awaiting State": {
+      "main": [
+        [
+          {
+            "node": "Route Reply to Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Register User in Master": {
+      "main": [
+        [
+          {
+            "node": "Send Registration Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f07b5dce-dc18-4ec8-b3a1-077dcbd31a8b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "707092ed3a35ea3f554e1be6a66295e3800621eff6a827de689cbe34c6f5a4c8"
+  },
+  "id": "HvKl5W8kbq9B4I9D",
+  "tags": [
+    {
+      "updatedAt": "2026-03-09T05:12:56.037Z",
+      "createdAt": "2026-03-09T05:12:56.037Z",
+      "id": "1zazyEDiPTzAhqgF",
+      "name": "ai-powered"
+    },
+    {
+      "updatedAt": "2026-03-09T05:12:56.063Z",
+      "createdAt": "2026-03-09T05:12:56.063Z",
+      "id": "4ZC8xZAmvLj4r1xf",
+      "name": "multi-channel"
+    },
+    {
+      "updatedAt": "2026-03-09T05:12:55.961Z",
+      "createdAt": "2026-03-09T05:12:55.961Z",
+      "id": "clu4FYs5BYikZETz",
+      "name": "expense-tracker"
+    }
+  ]
+}
