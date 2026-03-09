@@ -2378,10 +2378,10 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ '\\\\n\\\\nProfile: ' + $('Route by Intent').item.json.profileName + '\\\\nPeriod: ' + $json.period + '\\\\n\\\\nData:\\\\n' + $json.spreadsheetData + '\\\\n\\\\nUser Request:\\\\n' + $('Route by Intent').item.json.messageText }}",
+        "text": "={{ '\\\\n\\\\nProfile: ' + $('Route by Intent').item.json.profileName + '\\\\nPeriod: ' + $json.period + '\\\\n\\\\nData:\\\\n' + $json.spreadsheetData + '\\\\n\\\\nIncome Data:\\\\n' + $json.incomeSpreadsheetData + '\\\\n\\\\nUser Request:\\\\n' + $('Route by Intent').item.json.messageText }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=You are a personal finance assistant analyzing a user's expense and income data.\\n\\nYou will receive:\\n- userRequest: what the user asked\\n- intent: the action they wanted\\n- spreadsheetData: raw JSON from their Google Sheets\\n- profileName: the user's name\\n- period: the time period\\n\\nYour task:\\n1. Read the spreadsheetData carefully\\n2. Answer the userRequest directly and conversationally in the user's language\\n3. Include specific numbers and percentages where relevant\\n4. Highlight anything notable: overspending, surplus income, categories near budget limit\\n5. Suggest one practical tip if relevant\\n6. Format for messaging: use emoji, short paragraphs, bullet points - NO markdown tables\\n7. Return ONLY the replyText object (no JSON, no wrapper)\\n\\nKeep responses concise (under 300 words) but insightful.\\n\\n*PLEASE ALWAY REMEMBER NOW IS {{ $now }} AND TODAY IS {{ $today }}"
+          "systemMessage": "=You are a personal finance assistant analyzing a user's expense and income data.\\n\\nYou will receive:\\n- userRequest: what the user asked\\n- intent: the action they wanted\\n- spreadsheetData: raw JSON from their Google Sheets\\n- incomeSpreadsheetData: raw JSON from their Google Sheets as their income data\\n- profileName: the user's name\\n- period: the time period\\n\\nYour task:\\n1. Read the spreadsheetData carefully\\n2. Answer the userRequest directly and conversationally in the user's language\\n3. Include specific numbers and percentages where relevant\\n4. Highlight anything notable: overspending, surplus income, categories near budget limit\\n5. Format for messaging: profesional, short paragraphs, bullet points - NO markdown tables\\n6. Return ONLY the replyText object (no JSON, no wrapper)\\n\\nKeep responses concise (under 300 words) but insightful.\\n\\n*PLEASE ALWAY REMEMBER NOW IS {{ $now }} AND TODAY IS {{ $today }}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -2431,6 +2431,41 @@
       "id": "9bcac7bd-04b5-4cb6-814c-e0a003a7e8ef",
       "name": "Simple Memory1",
       "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}/values/Income?majorDimension=ROWS",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {}
+      },
+      "id": "24b5f56f-c62f-40e1-a397-60067bd2634b",
+      "name": "Read Income Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4288,
+        8528
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst data = ctx.values || ctx.dashboardData || ctx.rawSheetData || {};\nreturn [{ json: {\n  userRequest:     ctx.messageText || '',\n  intent:          ctx.parsedIntent || '',\n  profileName:     ctx.profileName || '',\n  period:          ctx.period || 'this month',\n  incomeSpreadsheetData: JSON.stringify(data),\n  spreadsheetId:   ctx.spreadsheetId,\n  channel:         ctx.channel,\n  userId:          ctx.userId,\n  sessionId:       ctx.sessionId,\n  rawContext:      ctx\n} }];"
+      },
+      "id": "c4cbc1b1-9d53-4a6e-9a5c-073b77a0acd3",
+      "name": "Prepare Income Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4512,
+        8528
+      ]
     }
   ],
   "pinData": {},
@@ -2834,6 +2869,11 @@
             "node": "Read Budget Data",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Read Income Data",
+            "type": "main",
+            "index": 0
           }
         ],
         [
@@ -2853,6 +2893,11 @@
         [
           {
             "node": "Read Month Data for Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Income Data",
             "type": "main",
             "index": 0
           }
@@ -3276,7 +3321,7 @@
       "main": [
         [
           {
-            "node": "AI Analysis Agent (Budget)",
+            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
@@ -3370,15 +3415,37 @@
           }
         ]
       ]
+    },
+    "Read Income Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Income Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Income Analysis": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3a9d9fd2-0bff-4809-8dcc-2ca5f04fe7b8",
+  "versionId": "33518de8-fddc-4a09-b3e1-c08b50445d36",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "707092ed3a35ea3f554e1be6a66295e3800621eff6a827de689cbe34c6f5a4c8"
