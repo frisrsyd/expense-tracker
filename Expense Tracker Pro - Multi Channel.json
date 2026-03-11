@@ -1303,12 +1303,12 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}/values/Dashboard!C{{ $json.dashboardRow }}:D{{ $json.dashboardRow }}?valueInputOption=USER_ENTERED",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}/values/Dashboard!C{{ $json.dashboardRow }}?valueInputOption=USER_ENTERED",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"values\": [[ {{ $json.newSpent }}, {{ $json.remaining }} ]]\n}",
+        "jsonBody": "={\n  \"values\": [[ {{ $json.newSpent }} ]]\n}",
         "options": {}
       },
       "id": "48652e8d-77f8-4560-8dc0-0a6a202be1ef",
@@ -1712,7 +1712,7 @@
         "chatId": "={{ $json.userId ? $json.userId : $('Parse AI Response').item.json.userId }}",
         "text": "={{ $json.replyText ? $json.replyText : $('Parse AI Response').item.json.replyText }}",
         "additionalFields": {
-          "reply_to_message_id": "={{ $('Check Awaiting Profile').item.json.rawPayload.message.message_id }}"
+          "reply_to_message_id": "={{ $('Check Awaiting Profile').first().json.rawPayload.message.message_id }}"
         }
       },
       "id": "5f4ff523-6aef-4717-9866-26f06afcd69c",
@@ -2609,8 +2609,7 @@
         20336
       ],
       "id": "16c1d964-544f-42f1-a63a-08c8b6e32cb5",
-      "name": "Simple Memory intent",
-      "disabled": true
+      "name": "Simple Memory intent"
     },
     {
       "parameters": {
@@ -3846,13 +3845,13 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "fa7ef259-a80c-43ac-9ca8-1ae2e02394fd",
+  "versionId": "00c57649-34a0-4ffa-bfc2-e2481848a9ea",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "707092ed3a35ea3f554e1be6a66295e3800621eff6a827de689cbe34c6f5a4c8"
