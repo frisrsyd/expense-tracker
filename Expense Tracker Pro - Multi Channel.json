@@ -8,13 +8,13 @@
         ],
         "options": {}
       },
-      "id": "581d9d8b-5442-44cc-8551-acf458b59853",
+      "id": "eabeb8c0-8ca7-4d38-8d6a-308ac79e889b",
       "name": "WhatsApp Trigger",
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
       "position": [
-        -768,
-        14464
+        9632,
+        21984
       ],
       "webhookId": "wa-webhook-id",
       "disabled": true
@@ -28,13 +28,13 @@
           "userIds": "frisrsyd"
         }
       },
-      "id": "629ad974-a248-4d65-8eb8-fd600d417549",
+      "id": "cea399c2-3d1a-48f8-9f7e-8f94644223e6",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -768,
-        14656
+        9632,
+        22416
       ],
       "webhookId": "83f1ddf4-bc0c-4735-964c-2f2260f3db64",
       "credentials": {
@@ -51,13 +51,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "56952c36-a011-4eb0-b9c0-7dee1b2ea03b",
+      "id": "6a9feefb-c7dc-4fae-834b-e7676caafe30",
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -768,
-        14848
+        9632,
+        22688
       ],
       "webhookId": "webhook-expense-tracker"
     },
@@ -65,52 +65,52 @@
       "parameters": {
         "jsCode": "const input = $input.first().json;\n\nconst sessionId = input.sessionId || input.chatId || 'chat-' + Date.now();\nconst messageText = input.chatInput || input.message || input.text || '';\n\nreturn [{\n  json: {\n    userId: sessionId,\n    userName: 'Chat User',\n    messageText,\n    mediaUrl: null,\n    mediaType: 'text',\n    channel: 'chat',\n    sessionId,\n    rawPayload: input\n  }\n}];"
       },
-      "id": "10223d4a-3533-4415-af3f-0a17db6370a2",
+      "id": "6d8b7b6d-ba15-4c70-bc5c-fa76bcf401e2",
       "name": "Normalize Chat",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -544,
-        15040
+        9856,
+        22880
       ]
     },
     {
       "parameters": {
         "jsCode": "const entry = $input.first().json;\nconst value = entry.entry?.[0]?.changes?.[0]?.value || {};\nconst contacts = value.contacts || [];\nconst messages = value.messages || [];\n\nif (!messages.length) return [];\n\nconst msg = messages[0];\nconst contact = contacts[0] || {};\n\nlet mediaUrl = null;\nlet mediaType = 'text';\nlet messageText = null;\n\nif (msg.type === 'text') {\n  messageText = msg.text?.body || '';\n} else if (msg.type === 'image') {\n  mediaType = 'image';\n  mediaUrl = msg.image?.id || null;\n  messageText = msg.image?.caption || '';\n} else if (msg.type === 'document') {\n  mediaType = 'pdf';\n  mediaUrl = msg.document?.id || null;\n  messageText = msg.document?.caption || '';\n}\n\nreturn [{\n  json: {\n    userId: contact.wa_id || msg.from || '',\n    userName: contact.profile?.name || '',\n    messageText,\n    mediaUrl,\n    mediaType,\n    channel: 'whatsapp',\n    rawPayload: entry\n  }\n}];"
       },
-      "id": "f9fc58d3-d2bd-4dc2-aef4-1ecd78898e46",
+      "id": "a8f8266b-95c1-4771-bf6e-007ad58a486a",
       "name": "Normalize WhatsApp",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -544,
-        14464
+        9856,
+        21984
       ]
     },
     {
       "parameters": {
         "jsCode": "const update = $input.first().json;\nconst msg = update.message || {};\nconst chat = msg.chat || {};\nconst from = msg.from || {};\n\nlet mediaUrl = null;\nlet mediaType = 'text';\nlet messageText = msg.text || '';\n\nif (msg.photo && msg.photo.length > 0) {\n  mediaType = 'image';\n  mediaUrl = msg.photo[msg.photo.length - 1].file_id;\n  messageText = msg.caption || '';\n} else if (msg.document) {\n  const mime = msg.document.mime_type || '';\n  mediaType = mime.includes('pdf') ? 'pdf' : 'image';\n  mediaUrl = msg.document.file_id;\n  messageText = msg.caption || '';\n}\n\nreturn [{\n  json: {\n    userId: String(chat.id || ''),\n    userName: [from.first_name, from.last_name].filter(Boolean).join(' '),\n    messageText,\n    mediaUrl,\n    mediaType,\n    channel: 'telegram',\n    rawPayload: update\n  }\n}];"
       },
-      "id": "97ae5eda-4df3-47e5-bc83-23c3ec0bd7a6",
+      "id": "d9b51c8c-40dc-490e-b886-a80827d29796",
       "name": "Normalize Telegram",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -544,
-        14656
+        9856,
+        22496
       ]
     },
     {
       "parameters": {
         "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nreturn [{\n  json: {\n    userId: body.userId || body.user_id || '',\n    userName: body.userName || body.user_name || '',\n    messageText: body.text || body.message || '',\n    mediaUrl: body.mediaUrl || body.media_url || null,\n    mediaType: body.mediaType || body.media_type || 'text',\n    channel: 'webhook',\n    rawPayload: body\n  }\n}];"
       },
-      "id": "93d5db1e-1b9b-4dcf-93f8-cb2b3e922e4c",
+      "id": "1825b140-dae3-4d79-a8ea-f66c52b90fa2",
       "name": "Normalize Webhook",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -544,
-        14848
+        9856,
+        22688
       ]
     },
     {
@@ -135,13 +135,13 @@
         },
         "options": {}
       },
-      "id": "53a5450a-9045-4ed7-8401-fc28cecdd396",
+      "id": "d1c2d7e8-bf7a-4a8f-89b5-2f27e5e1ee86",
       "name": "Lookup User Profile",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -320,
-        14656
+        10080,
+        21616
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -155,13 +155,13 @@
       "parameters": {
         "jsCode": "const input = $input.first().json;\nconst lookupResults = $('Lookup User Profile').all() || [];\n\n// Safely collect normalized message from whichever trigger actually ran\nlet normalized = [];\nconst normalizers = ['Normalize Telegram', 'Normalize WhatsApp', 'Normalize Webhook', 'Normalize Chat'];\nfor (const name of normalizers) {\n  try {\n    const items = $(name).all();\n    if (items && items.length > 0) normalized = normalized.concat(items);\n  } catch (e) {\n    // This channel's normalizer did not run — skip silently\n  }\n}\n\nconst msg = normalized.find(n => n.json.userId || n.json.id || n.json.profileId || n.json.chatId || n.json.phone) || { json: {} };\n\nfunction getId(item) {\n  if (!item || !item.json) return undefined;\n  const candidates = [\n    item.json.userId,\n    item.json.user_id,\n    item.json.id,\n    item.json.profileId,\n    item.json.profile_id,\n    item.json.telegramId,\n    item.json.chatId,\n    item.json.phone,\n    item.json.from,\n    (item.json.payload && item.json.payload.userId)\n  ];\n  for (const c of candidates) {\n    if (c !== undefined && c !== null && c !== '') return String(c).trim();\n  }\n  return undefined;\n}\n\nconst msgId = getId(msg);\n\nconst userRow = lookupResults.find(r => {\n  const rid = getId(r);\n  return rid && msgId && rid === msgId;\n});\n\nif (!userRow) {\n  return [{ json: { ...msg.json, isNew: true, isAwaiting: false, profileData: null } }];\n}\n\nif (userRow.json.state === 'awaitingProfileName') {\n  return [{ json: { ...msg.json, isNew: false, isAwaiting: true, profileData: userRow.json } }];\n}\n\nreturn [{ json: { ...msg.json, isNew: false, isAwaiting: false, profileData: userRow.json } }];"
       },
-      "id": "262e6ed1-17c7-4f07-b781-5b587eb86ed9",
+      "id": "dc65f777-9dc7-4dfd-add1-c5575252b763",
       "name": "Check Awaiting Profile",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -96,
-        14112
+        10304,
+        21392
       ]
     },
     {
@@ -265,26 +265,26 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "07b14521-aa4c-476e-a2a1-1fd0f86a8b6c",
+      "id": "8ff92290-5cb9-4567-94a9-9e2407a95b26",
       "name": "Route User State",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        128,
-        14080
+        10528,
+        21360
       ]
     },
     {
       "parameters": {
         "jsCode": "const msg = $input.first().json;\nreturn [{\n  json: {\n    ...msg,\n    replyText: '👋 Welcome! I\\'m your expense tracker bot. What name would you like for your profile?',\n    action: 'askProfileName',\n    state: 'awaitingProfileName'\n  }\n}];"
       },
-      "id": "aa47791c-d295-46f5-82b5-db68e275f8a1",
+      "id": "3d821cb9-6a92-4bf9-8d54-148c01548ea2",
       "name": "Ask Profile Name",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        14208
+        10752,
+        21408
       ]
     },
     {
@@ -298,13 +298,13 @@
         "jsonBody": "={\n  \"properties\": {\n    \"title\": \"Expense Tracker - {{ $json.messageText }}\"\n  },\n  \"sheets\": [\n    { \"properties\": { \"title\": \"Dashboard\", \"index\": 0 } },\n    { \"properties\": { \"title\": \"Recurring\", \"index\": 1 } },\n    { \"properties\": { \"title\": \"{{ $now.format('MMM-yyyy') }}\", \"index\": 2 } }\n  ]\n}",
         "options": {}
       },
-      "id": "9330202a-7d3c-4863-90b2-8775cf9bfe8d",
+      "id": "f61a37df-702d-4211-a3b7-011d1718607a",
       "name": "Create User Spreadsheet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2720,
-        14736
+        13344,
+        21936
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -317,13 +317,13 @@
       "parameters": {
         "jsCode": "const spreadsheetId = $input.first().json.spreadsheetId;\nconst profileName = $('Route User State').first().json.messageText;\nconst categories = [\n  'Makanan & Minuman', 'Transportasi', 'Tagihan', 'Hiburan',\n  'Belanja', 'Kesehatan', 'Langganan', 'Lain-lain'\n];\n\nconst values = [['Category', 'Budget', 'Spent This Month', 'Remaining']];\nlet rowNumber = 2;\nfor (const cat of categories) {\n  values.push([\n    cat,\n    0,\n    0,\n    `=B${rowNumber}-C${rowNumber}`,\n  ]);\n  rowNumber++;\n}\n\nreturn [{\n  json: {\n    spreadsheetId,\n    profileName,\n    dashboardValues: JSON.stringify({ values })\n  }\n}];"
       },
-      "id": "e244d674-8235-419a-88a5-16eecfbe3268",
+      "id": "78f814da-d96f-46bd-8f86-492be92b65fd",
       "name": "Setup Dashboard Headers",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2944,
-        14736
+        13632,
+        21936
       ]
     },
     {
@@ -337,13 +337,13 @@
         "jsonBody": "={{ $json.dashboardValues }}",
         "options": {}
       },
-      "id": "1dc5f2e5-85fd-47e9-9ea9-ae8188a68a5e",
+      "id": "bc7117f5-e0e1-474b-ac3e-0362e7adde46",
       "name": "Write Dashboard Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3520,
-        14448
+        14144,
+        21744
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -363,13 +363,13 @@
         "jsonBody": "{\n  \"values\": [\n    [\"Date\", \"Description\", \"Category\", \"Amount\", \"Currency\", \"Split With\", \"Recurring\", \"Notes\"]\n  ]\n}",
         "options": {}
       },
-      "id": "53469f14-e773-4379-b254-5071826605c0",
+      "id": "b8b7028f-8a76-4fd7-bf7e-8e5088eab41b",
       "name": "Setup Month Sheet Headers",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3520,
-        14640
+        14144,
+        21936
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -382,13 +382,13 @@
       "parameters": {
         "jsCode": "const msg = $('Route User State').first().json;\nconst profileName = msg.messageText;\nreturn [{\n  json: {\n    ...msg,\n    replyText: `✅ Profile \"${profileName}\" created! Your expense tracker spreadsheet is ready.\\n\\nYou can now:\\n• Send expenses: \"Lunch 45k\"\\n• Check budget: \"Check my budget\"\\n• Get reports: \"Monthly report\"\\n• Set budget: \"Set food budget 500k\"\\n\\nSend any expense to get started!`,\n    action: 'registrationComplete'\n  }\n}];"
       },
-      "id": "af5398c6-09ad-41fc-9f26-20c5ba115d1b",
+      "id": "07a9f03b-b0ea-413b-8a5d-c2a42e9360c6",
       "name": "Send Registration Complete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        14544
+        14816,
+        21904
       ],
       "executeOnce": true
     },
@@ -419,13 +419,13 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "c55cc04f-9b90-483e-a37b-30368d9d7f11",
+      "id": "496f1395-557d-4dc9-b5d7-93e8c2e6e18e",
       "name": "Merge User Context",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        352,
-        13184
+        10752,
+        20368
       ]
     },
     {
@@ -504,13 +504,13 @@
         },
         "options": {}
       },
-      "id": "2aaad003-1750-4918-b5c3-32a2856abfd1",
+      "id": "aa97d7ba-14ad-4e46-b1c4-f225561c25af",
       "name": "Detect Media Type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        576,
-        13168
+        10976,
+        20352
       ]
     },
     {
@@ -519,13 +519,13 @@
         "fileId": "={{ $json.rawPayload.message.photo.last().file_id }}",
         "additionalFields": {}
       },
-      "id": "0377e96f-1715-4b30-8237-957d4116d1a3",
+      "id": "395c71a6-f5de-4c9b-a1cb-fc56d0e40bf0",
       "name": "Get File from Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        800,
-        14032
+        11200,
+        21232
       ],
       "webhookId": "e251f7a0-3064-4b3c-9150-6f7bf09076f5",
       "credentials": {
@@ -539,13 +539,13 @@
       "parameters": {
         "jsCode": "const ctx = {};\ntry { const mu = $('Merge User Context').first(); if (mu) Object.assign(ctx, mu.json); } catch(e) {}\n\nconst inp       = $input.first().json;\nconst filePath  = inp.file_path || (inp.result && inp.result.file_path) || '';\nconst token     = $env.TELEGRAM_BOT_TOKEN || '';\nconst fileUrl   = filePath ? `https://api.telegram.org/file/bot${token}/${filePath}` : '';\n\nreturn [{ json: { ...ctx, telegramFileUrl: fileUrl, rawFilePath: filePath } }];"
       },
-      "id": "d18ceb5e-a77e-4285-982b-dc9fac3106f7",
+      "id": "e0b55800-7799-45bc-9a0b-4bf9f4c3990a",
       "name": "Build Telegram File URL",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1024,
-        14032
+        11424,
+        21232
       ]
     },
     {
@@ -559,13 +559,13 @@
         "jsonBody": "={\n  \"model\": \"meta-llama/llama-4-scout-17b-16e-instruct\",\n  \"temperature\": 1,\n  \"max_completion_tokens\": 8192,\n  \"top_p\": 1,\n  \"stream\": false,\n  \"stop\": null,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expense tracker assistant. Extract all expense information from receipt/struk/invoice images and return ONLY valid JSON (no markdown, no backticks, no explanation). Schema: {\\\"intent\\\":\\\"record_expense\\\",\\\"amount\\\":number,\\\"description\\\":\\\"string\\\",\\\"category\\\":\\\"string\\\",\\\"date\\\":\\\"YYYY-MM-DD\\\",\\\"currency\\\":\\\"IDR\\\",\\\"recurring\\\":false,\\\"splitWith\\\":null,\\\"notes\\\":\\\"\\\",\\\"replyText\\\":\\\"confirmation in user language\\\"}. Categories (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain. Amount in base units (no abbreviations). If image is not a receipt, return {\\\"intent\\\":\\\"help\\\",\\\"replyText\\\":\\\"explanation in user language\\\"}.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Extract all expense details from this receipt or struk image. Return structured JSON only.\"\n        },\n        {\n          \"type\": \"image_url\",\n          \"image_url\": {\n            \"url\": \"{{ $json.telegramFileUrl }}\"\n          }\n        }\n      ]\n    }\n  ]\n}",
         "options": {}
       },
-      "id": "68c91ebb-c97d-4d57-83f5-296c5c8f3d11",
+      "id": "9ae9cd2a-d7ce-499f-9ba9-fc5bba8a9f84",
       "name": "Groq Vision + Intent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1248,
-        14032
+        11648,
+        21232
       ],
       "credentials": {
         "groqApi": {
@@ -578,13 +578,13 @@
       "parameters": {
         "jsCode": "const ctx = {};\ntry { const mu = $('Merge User Context').first(); if (mu) Object.assign(ctx, mu.json); } catch(e) {}\nconst res = $input.first().json;\nconst raw = res.choices && res.choices[0] ? res.choices[0].message.content : JSON.stringify(res);\n// Normalize to 'output' field — expected by Parse AI Response\nreturn [{ json: { ...ctx, output: raw } }];"
       },
-      "id": "38eaf563-c1da-43bc-849c-fd8dd075c8b1",
+      "id": "14ce2629-55a5-4182-9549-f1535a76bcb0",
       "name": "Extract Groq Vision Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1536,
-        14032
+        11936,
+        21232
       ]
     },
     {
@@ -687,13 +687,13 @@
         },
         "options": {}
       },
-      "id": "3b1ee008-7106-4361-ac25-9c6f78ac141e",
+      "id": "01b9c879-c0cd-40a2-ab70-c64492c9eba4",
       "name": "Select Model Provider",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1248,
-        12848
+        11648,
+        19984
       ]
     },
     {
@@ -705,13 +705,13 @@
           "systemMessage": "You are a multilingual expense tracking assistant. Detect the user's language and ALWAYS respond in that language.\n\nAnalyze the user message and return ONLY valid JSON (no markdown, no backticks, no explanation). Use one of these schemas:\n\nINTENTS:\n1. {\"intent\":\"record_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":null,\"recurring\":null,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n2. {\"intent\":\"check_budget\",\"category\":null,\"replyText\":\"message asking to check budget\"}\n3. {\"intent\":\"set_budget\",\"category\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"period\":\"monthly\",\"replyText\":\"confirmation message\"}\n4. {\"intent\":\"get_report\",\"period\":\"week|month|year\",\"replyText\":\"message asking for report\"}\n5. {\"intent\":\"split_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":\"profileName\",\"splitType\":\"equal\",\"replyText\":\"confirmation message\"}\n6. {\"intent\":\"list_recurring\",\"replyText\":\"message\"}\n7. {\"intent\":\"cancel_recurring\",\"description\":\"string\",\"replyText\":\"message\"}\n8. {\"intent\":\"merge_report\",\"profiles\":[],\"period\":\"month\",\"replyText\":\"message\"}\n9. {\"intent\":\"help\",\"replyText\":\"help text in user language\"}\n\n\n10. {\"intent\":\"record_income\",\"amount\":number,\"description\":\"string\",\"source\":\"salary|freelance|investment|business|other\",\"date\":\"YYYY-MM-DD\",\"currency\":\"IDR\",\"recurring\":false,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n11. {\"intent\":\"check_balance\",\"period\":\"this_month|last_month|this_year\",\"replyText\":\"message\"}\nCATEGORIES (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain\n\nRULES:\n- \"k\" suffix = x1000 (45k = 45000), \"rb\" suffix = x1000 (25rb = 25000)\n- \"jt\" or \"juta\" = x1000000 (1.5jt = 1500000)\n- Default currency: IDR\n- If no date specified, use today's date\n- Auto-detect category from context (food words -> Makanan & Minuman, transport -> Transportasi, etc.)\n- For splits: parse \"@ProfileName\" or \"split with ProfileName\" or \"bagi dengan ProfileName\"\n- For recurring: detect \"berulang\", \"recurring\", \"tiap bulan\", \"every month\"\n\n- For income: \"terima gaji\", \"dapat freelance\", \"pendapatan\", \"income\", \"masuk uang\", \"dividen\", \"bayaran\" → use record_income intent, source: salary=gaji, freelance=freelance/proyek, investment=investasi/dividen/saham, business=bisnis/jualan\n- For balance: \"saldo\", \"net balance\", \"cashflow\", \"income vs pengeluaran\", \"berapa sisa\" → use check_balance intent\n- ALWAYS include replyText with a human-friendly confirmation in the user's language\n- Return ONLY the JSON object, nothing else"
         }
       },
-      "id": "32a8313e-271d-4e26-983a-21dd826a0894",
+      "id": "beefc479-b83f-4b3d-86bc-d4427cb00944",
       "name": "AI Agent (OpenAI)",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1472,
-        12208
+        11872,
+        19200
       ]
     },
     {
@@ -723,13 +723,13 @@
           "systemMessage": "You are a multilingual expense tracking assistant. Detect the user's language and ALWAYS respond in that language.\n\nAnalyze the user message and return ONLY valid JSON (no markdown, no backticks, no explanation). Use one of these schemas:\n\nINTENTS:\n1. {\"intent\":\"record_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":null,\"recurring\":null,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n2. {\"intent\":\"check_budget\",\"category\":null,\"replyText\":\"message asking to check budget\"}\n3. {\"intent\":\"set_budget\",\"category\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"period\":\"monthly\",\"replyText\":\"confirmation message\"}\n4. {\"intent\":\"get_report\",\"period\":\"week|month|year\",\"replyText\":\"message asking for report\"}\n5. {\"intent\":\"split_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":\"profileName\",\"splitType\":\"equal\",\"replyText\":\"confirmation message\"}\n6. {\"intent\":\"list_recurring\",\"replyText\":\"message\"}\n7. {\"intent\":\"cancel_recurring\",\"description\":\"string\",\"replyText\":\"message\"}\n8. {\"intent\":\"merge_report\",\"profiles\":[],\"period\":\"month\",\"replyText\":\"message\"}\n9. {\"intent\":\"help\",\"replyText\":\"help text in user language\"}\n\n\n10. {\"intent\":\"record_income\",\"amount\":number,\"description\":\"string\",\"source\":\"salary|freelance|investment|business|other\",\"date\":\"YYYY-MM-DD\",\"currency\":\"IDR\",\"recurring\":false,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n11. {\"intent\":\"check_balance\",\"period\":\"this_month|last_month|this_year\",\"replyText\":\"message\"}\nCATEGORIES (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain\n\nRULES:\n- \"k\" suffix = x1000 (45k = 45000), \"rb\" suffix = x1000 (25rb = 25000)\n- \"jt\" or \"juta\" = x1000000 (1.5jt = 1500000)\n- Default currency: IDR\n- If no date specified, use today's date\n- Auto-detect category from context (food words -> Makanan & Minuman, transport -> Transportasi, etc.)\n- For splits: parse \"@ProfileName\" or \"split with ProfileName\" or \"bagi dengan ProfileName\"\n- For recurring: detect \"berulang\", \"recurring\", \"tiap bulan\", \"every month\"\n\n- For income: \"terima gaji\", \"dapat freelance\", \"pendapatan\", \"income\", \"masuk uang\", \"dividen\", \"bayaran\" → use record_income intent, source: salary=gaji, freelance=freelance/proyek, investment=investasi/dividen/saham, business=bisnis/jualan\n- For balance: \"saldo\", \"net balance\", \"cashflow\", \"income vs pengeluaran\", \"berapa sisa\" → use check_balance intent\n- ALWAYS include replyText with a human-friendly confirmation in the user's language\n- Return ONLY the JSON object, nothing else"
         }
       },
-      "id": "2dd02473-eda6-4d16-a46b-fa2514c704a4",
+      "id": "6e933287-c383-435d-a448-13c389939879",
       "name": "AI Agent (Gemini)",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1472,
-        13632
+        11872,
+        20832
       ]
     },
     {
@@ -741,13 +741,13 @@
           "systemMessage": "You are a multilingual expense tracking assistant. Detect the user's language and ALWAYS respond in that language.\n\nAnalyze the user message and return ONLY valid JSON (no markdown, no backticks, no explanation). Use one of these schemas:\n\nINTENTS:\n1. {\"intent\":\"record_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":null,\"recurring\":null,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n2. {\"intent\":\"check_budget\",\"category\":null,\"replyText\":\"message asking to check budget\"}\n3. {\"intent\":\"set_budget\",\"category\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"period\":\"monthly\",\"replyText\":\"confirmation message\"}\n4. {\"intent\":\"get_report\",\"period\":\"week|month|year\",\"replyText\":\"message asking for report\"}\n5. {\"intent\":\"split_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":\"profileName\",\"splitType\":\"equal\",\"replyText\":\"confirmation message\"}\n6. {\"intent\":\"list_recurring\",\"replyText\":\"message\"}\n7. {\"intent\":\"cancel_recurring\",\"description\":\"string\",\"replyText\":\"message\"}\n8. {\"intent\":\"merge_report\",\"profiles\":[],\"period\":\"month\",\"replyText\":\"message\"}\n9. {\"intent\":\"help\",\"replyText\":\"help text in user language\"}\n\n\n10. {\"intent\":\"record_income\",\"amount\":number,\"description\":\"string\",\"source\":\"salary|freelance|investment|business|other\",\"date\":\"YYYY-MM-DD\",\"currency\":\"IDR\",\"recurring\":false,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n11. {\"intent\":\"check_balance\",\"period\":\"this_month|last_month|this_year\",\"replyText\":\"message\"}\nCATEGORIES (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain\n\nRULES:\n- \"k\" suffix = x1000 (45k = 45000), \"rb\" suffix = x1000 (25rb = 25000)\n- \"jt\" or \"juta\" = x1000000 (1.5jt = 1500000)\n- Default currency: IDR\n- If no date specified, use today's date\n- Auto-detect category from context (food words -> Makanan & Minuman, transport -> Transportasi, etc.)\n- For splits: parse \"@ProfileName\" or \"split with ProfileName\" or \"bagi dengan ProfileName\"\n- For recurring: detect \"berulang\", \"recurring\", \"tiap bulan\", \"every month\"\n\n- For income: \"terima gaji\", \"dapat freelance\", \"pendapatan\", \"income\", \"masuk uang\", \"dividen\", \"bayaran\" → use record_income intent, source: salary=gaji, freelance=freelance/proyek, investment=investasi/dividen/saham, business=bisnis/jualan\n- For balance: \"saldo\", \"net balance\", \"cashflow\", \"income vs pengeluaran\", \"berapa sisa\" → use check_balance intent\n- ALWAYS include replyText with a human-friendly confirmation in the user's language\n- Return ONLY the JSON object, nothing else"
         }
       },
-      "id": "cf2ed427-c4a5-40c9-be4f-f865bc4dccab",
+      "id": "8456d0d8-455b-4a1b-bad6-6077375306f0",
       "name": "AI Agent (Ollama)",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1472,
-        12608
+        11872,
+        19600
       ]
     },
     {
@@ -758,13 +758,13 @@
           "temperature": 0.2
         }
       },
-      "id": "b4e97b5f-6252-429b-bd88-83a4ac45d52b",
+      "id": "52853b17-7d66-4333-8b72-dd414ec3698c",
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1488,
-        12432
+        11888,
+        19424
       ],
       "disabled": true
     },
@@ -776,13 +776,13 @@
           "temperature": 0.2
         }
       },
-      "id": "a322413b-a8f3-49b7-83ca-4d755e60fec3",
+      "id": "0c511b90-42ab-460b-a3a7-f4f6a3bda1a5",
       "name": "Gemini Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        1552,
-        13856
+        11952,
+        21056
       ],
       "credentials": {
         "googlePalmApi": {
@@ -796,13 +796,13 @@
         "model": "llama3",
         "options": {}
       },
-      "id": "3d4baa79-30fb-448e-821e-1cf19b57e00e",
+      "id": "8ca3f933-b9a5-431f-ba01-ae8e1ec00aef",
       "name": "Ollama Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        1552,
-        12832
+        11952,
+        19824
       ],
       "disabled": true
     },
@@ -814,13 +814,13 @@
           "temperature": 0.2
         }
       },
-      "id": "1b470e69-cffc-41b4-a782-1f50ccf1c16c",
+      "id": "277fa80c-90d4-478b-b488-5a02d0b42e98",
       "name": "Groq Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        3152,
-        12784
+        13584,
+        20000
       ],
       "credentials": {
         "groqApi": {
@@ -833,26 +833,26 @@
       "parameters": {
         "schemaType": "manual"
       },
-      "id": "c4c37d07-fce6-43f0-9ea6-1a872a253bc4",
+      "id": "13e3e87a-4120-478d-a3d1-8b82b5e15099",
       "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        1616,
-        12432
+        12016,
+        19424
       ]
     },
     {
       "parameters": {
         "jsCode": "// Provider-agnostic: try all 4 AI agent sources\nlet aiItem = null;\nconst agents = ['AI Agent (Groq)', 'AI Agent (OpenAI)', 'AI Agent (Gemini)', 'AI Agent (Ollama)', 'Extract Groq Vision Output'];\nfor (const agentName of agents) {\n  try {\n    const items = $(agentName).all();\n    if (items && items.length > 0) {\n      aiItem = items[0].json;\n      break;\n    }\n  } catch (e) { /* skip unavailable agent */ }\n}\nif (!aiItem) {\n  try { aiItem = $input.first().json; } catch(e) { aiItem = {}; }\n}\n\n// Get original context (spreadsheetId, channel, userId, profileName, etc.)\nlet originalData = {};\ntry { originalData = $('Merge User Context').first().json; } catch(e) {}\n\n// Extract the AI output text\nconst candidate = aiItem.output ?? aiItem.text ?? aiItem.response ?? aiItem.result ?? '';\n\n// Try to parse JSON from the AI output\nlet parsed = null;\nconsole.log(candidate, \"<<<candidate\")\nif (typeof candidate === 'string') {\n  console.log(\"masuk candidate string\")\n  const match = candidate.match(/(\\[[\\s\\S]*\\]|\\{[\\s\\S]*\\})/);\n  if (match) {\n  console.log(\"masuk match\")\n    try { parsed = JSON.parse(candidate.trim()); } catch(e) { parsed = null; console.log(\"error parsed\", e)}\n  }\n  if (!parsed) {\n  console.log(\"masuk !parsed\")\n    // Fallback: AI returned plain text instead of JSON\n    parsed = { intent: 'help', replyText: candidate.trim() };\n  }\n} else if (typeof candidate === 'object' && candidate !== null) {\n  console.log(\"masuk typeof candidate === 'object' && candidate !== null\")\n  parsed = candidate;\n} else {\n  console.log(\"<<<masuk else\")\n  parsed = { intent: 'help', replyText: String(candidate || 'No response from AI') };\n}\n\n// Ensure parsed is an object\nif (!parsed || typeof parsed !== 'object') {\n  console.log(\"masuk !parsed || typeof parsed !== 'object'\")\n  parsed = { intent: 'help', replyText: String(parsed || '') };\n}\n\n// Handle array response (e.g. multiple expenses from one receipt image)\nif (Array.isArray(parsed)) {\n  return parsed.map(item => {\n    const parsedIntent = item.intent || 'help';\n    const replyText = item.replyText || item.text || item.response || '';\n    return { json: { ...originalData, ...item, parsedIntent, replyText } };\n  });\n}\n\nconst parsedIntent = parsed.intent || 'help';\nconst replyText = parsed.replyText || parsed.text || parsed.response || '';\n\n// Merge original context + parsed AI output\n// originalData carries: spreadsheetId, channel, userId, userName, profileName, messageText, etc.\n// parsed carries: intent, amount, category, date, description, replyText, etc.\nreturn [{\n  json: {\n    ...originalData,\n    ...parsed,\n    parsedIntent,\n    replyText\n  }\n}];"
       },
-      "id": "12052700-15e0-4968-b628-e9a76188e9ce",
+      "id": "8757974e-f60f-4ae0-ad8b-142ee236fa72",
       "name": "Parse AI Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1824,
-        12976
+        12224,
+        20176
       ]
     },
     {
@@ -1109,13 +1109,13 @@
         },
         "options": {}
       },
-      "id": "caa82280-59c5-4820-9aff-c67fbfdb9ba0",
+      "id": "6bd5d7f1-1cbb-466b-a40a-c55bb2d327b2",
       "name": "Route by Intent",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        2048,
-        12848
+        12448,
+        20048
       ]
     },
     {
@@ -1125,13 +1125,13 @@
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "options": {}
       },
-      "id": "c29b5586-128d-4ae0-861f-e02fe31bcdc2",
+      "id": "dd104dbd-3fbf-46e9-9d30-0b6c2b3f9212",
       "name": "Ensure Month Sheet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2272,
-        12128
+        12672,
+        19312
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1144,13 +1144,13 @@
       "parameters": {
         "jsCode": "const response = $input.first().json;\nconst sheets = (response.sheets || []).map(s => s.properties.title);\nconst now = new Date();\nconst monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst monthSheet = monthNames[now.getMonth()] + '-' + now.getFullYear();\nconst allExpenses = $('Route by Intent').all();\n\nreturn allExpenses.map(item => ({\n  json: {\n    ...item.json,\n    monthSheet,\n    sheetExists: sheets.includes(monthSheet),\n    spreadsheetId: item.json.spreadsheetId\n  }\n}));"
       },
-      "id": "20af2e8b-0502-4141-a765-35554c3f062b",
+      "id": "88946f56-f940-4d37-979b-2cafd5df4f1c",
       "name": "Check and Create Month Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2496,
-        12128
+        12896,
+        19312
       ]
     },
     {
@@ -1178,13 +1178,13 @@
         },
         "options": {}
       },
-      "id": "c5f53f40-c56a-4da6-bad8-4dbb85dbfa1a",
+      "id": "60dd29f6-dd8e-4840-a997-1d3b3db9ed62",
       "name": "Create Month Sheet If Needed",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2720,
-        12128
+        13120,
+        19312
       ]
     },
     {
@@ -1198,13 +1198,13 @@
         "jsonBody": "={\n  \"requests\": [\n    {\n      \"addSheet\": {\n        \"properties\": {\n          \"title\": \"{{ $json.monthSheet }}\"\n        }\n      }\n    }\n  ]\n}",
         "options": {}
       },
-      "id": "7a3b37c9-56c2-4543-9475-d97cc04a2a6a",
+      "id": "40a895be-dbbc-4a59-8ba7-6b32b6a03235",
       "name": "Create New Month Sheet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2944,
-        12048
+        13344,
+        19248
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1224,13 +1224,13 @@
         "jsonBody": "{\n  \"values\": [\n    [\"Date\", \"Description\", \"Category\", \"Amount\", \"Currency\", \"Split With\", \"Recurring\", \"Notes\"]\n  ]\n}",
         "options": {}
       },
-      "id": "b73db4bc-77e9-44c9-b944-d8548f4f601e",
+      "id": "5974e49c-3678-437c-a44c-51b896c6af24",
       "name": "Add Month Sheet Headers",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3232,
-        12048
+        13632,
+        19248
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1250,13 +1250,13 @@
         "jsonBody": "={\n  \"values\": [\n    [\n      {{ JSON.stringify(($json.date || $now.format('yyyy-MM-dd')) + 'T' + $now.format('HH:mm:ss')) }},\n      {{ JSON.stringify($json.description || '') }},\n      {{ JSON.stringify($json.category || '') }},\n      {{ $json.amount || 0 }},\n      {{ JSON.stringify($json.currency || 'IDR') }},\n      {{ JSON.stringify($json.splitWith || '') }},\n      {{ JSON.stringify($json.recurring || '') }},\n      {{ JSON.stringify($json.notes || '') }}\n    ]\n  ]\n}",
         "options": {}
       },
-      "id": "5a46d452-e5a4-46c9-b41d-ea080919677e",
+      "id": "ee0562d9-30ed-4ddf-91b2-f9e66a35932a",
       "name": "Record Expense Row",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3520,
-        12128
+        13920,
+        19312
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1267,16 +1267,15 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
         "jsCode": "const allExpenses = $('Check and Create Month Sheet').all();\nconst dashRows = $input.first().json.values || [];\nconst firstExpense = allExpenses[0].json;\n\n// Aggregate total amount per category to avoid double-write on same dashboard row\nconst categoryTotals = {};\nfor (const item of allExpenses) {\n  const exp = item.json;\n  const cat = exp.category || 'Lain-lain';\n  categoryTotals[cat] = (categoryTotals[cat] || 0) + (Number(exp.amount) || 0);\n}\n\n// One output item per unique category\nreturn Object.entries(categoryTotals).map(([category, totalAmount]) => {\n  let rowNumber = 9;\n  let currentSpent = 0;\n  let budget = 0;\n  for (let i = 1; i < dashRows.length; i++) {\n    if (dashRows[i][0] === category) {\n      rowNumber = i + 1;\n      budget = Number(dashRows[i][1]) || 0;\n      currentSpent = Number(dashRows[i][2]) || 0;\n      break;\n    }\n  }\n  const newSpent = currentSpent + totalAmount;\n  const remaining = budget - newSpent;\n  return {\n    json: {\n      spreadsheetId: firstExpense.spreadsheetId,\n      channel: firstExpense.channel,\n      userId: firstExpense.userId,\n      profileName: firstExpense.profileName,\n      sessionId: firstExpense.sessionId,\n      category,\n      dashboardRow: rowNumber,\n      newSpent,\n      remaining\n    }\n  };\n});"
       },
-      "id": "95aebec8-f422-4293-8369-f21dc55cbcf6",
+      "id": "8135ba5d-60ab-4fed-9d0b-335b2732282d",
       "name": "Update Dashboard Spent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3968,
-        12128
+        14368,
+        19312
       ]
     },
     {
@@ -1286,13 +1285,13 @@
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "options": {}
       },
-      "id": "05b4284e-b02a-4b12-8ac0-4173a93524e9",
+      "id": "cd747c99-84b2-4d24-863a-fa637f22afa7",
       "name": "Read Dashboard After Record",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3744,
-        12128
+        14144,
+        19312
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1312,13 +1311,13 @@
         "jsonBody": "={\n  \"values\": [[ {{ $json.newSpent }}, {{ $json.remaining }} ]]\n}",
         "options": {}
       },
-      "id": "29a88842-e109-40c2-ac76-3791b68ef03a",
+      "id": "48652e8d-77f8-4560-8dc0-0a6a202be1ef",
       "name": "Write Dashboard Update",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4192,
-        12128
+        14592,
+        19312
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1329,16 +1328,15 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const allExpenses = $('Check and Create Month Sheet').all();\nconst firstExpense = allExpenses[0].json;\nconst totalAmount = allExpenses.reduce((sum, item) => sum + (Number(item.json.amount) || 0), 0);\n\nconst lines = ['\u2705 Expenses Recorded:'];\nfor (const item of allExpenses) {\n  const exp = item.json;\n  const amt = Number(exp.amount) || 0;\n  lines.push('\u2022 ' + (exp.description || '-') + ': Rp ' + amt.toLocaleString('id-ID') + ' (' + (exp.category || 'Lain-lain') + ')');\n}\nif (allExpenses.length > 1) {\n  lines.push('\\nTotal: Rp ' + totalAmount.toLocaleString('id-ID'));\n}\n\nreturn [{\n  json: {\n    spreadsheetId: firstExpense.spreadsheetId,\n    channel: firstExpense.channel,\n    userId: firstExpense.userId,\n    profileName: firstExpense.profileName,\n    sessionId: firstExpense.sessionId,\n    parsedIntent: 'record_expense',\n    amount: totalAmount,\n    category: allExpenses.length === 1 ? (allExpenses[0].json.category || 'Lain-lain') : 'multiple',\n    replyText: lines.join('\\n')\n  }\n}];"
+        "jsCode": "const allExpenses = $('Check and Create Month Sheet').all();\nconst firstExpense = allExpenses[0].json;\nconst totalAmount = allExpenses.reduce((sum, item) => sum + (Number(item.json.amount) || 0), 0);\n\nconst lines = ['✅ Expenses Recorded:'];\nfor (const item of allExpenses) {\n  const exp = item.json;\n  const amt = Number(exp.amount) || 0;\n  lines.push('• ' + (exp.description || '-') + ': Rp ' + amt.toLocaleString('id-ID') + ' (' + (exp.category || 'Lain-lain') + ')');\n}\nif (allExpenses.length > 1) {\n  lines.push('\\nTotal: Rp ' + totalAmount.toLocaleString('id-ID'));\n}\n\nreturn [{\n  json: {\n    spreadsheetId: firstExpense.spreadsheetId,\n    channel: firstExpense.channel,\n    userId: firstExpense.userId,\n    profileName: firstExpense.profileName,\n    sessionId: firstExpense.sessionId,\n    parsedIntent: 'record_expense',\n    amount: totalAmount,\n    category: allExpenses.length === 1 ? (allExpenses[0].json.category || 'Lain-lain') : 'multiple',\n    replyText: lines.join('\\n')\n  }\n}];"
       },
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "id": "68fe0e3b-a971-489f-9644-651523db6a98",
       "name": "Aggregate Expense Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4416,
-        12128
+        14816,
+        19312
       ]
     },
     {
@@ -1348,13 +1346,13 @@
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "options": {}
       },
-      "id": "bc789218-72bb-421e-a71a-eca82cedfd49",
+      "id": "2944ffbb-fad7-40fc-a6f6-bf9e9fb41d51",
       "name": "Read Budget Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2272,
-        12592
+        12672,
+        19776
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1367,13 +1365,13 @@
       "parameters": {
         "jsCode": "const apiResponse = $input.first().json;\nconst allRows = apiResponse.values || [];\nconst originalData = $('Route by Intent').first().json;\nconst category = originalData.category;\n\n// allRows[0] = header, allRows[1..8] = data\n// Columns: A=Category, B=Budget, C=Spent This Month, D=Remaining\nlet lines = ['📊 Budget Status:\\n'];\n\nfor (let i = 1; i < allRows.length; i++) {\n  const row = allRows[i];\n  const cat = row[0] || '';\n  if (category && cat !== category) continue;\n  const budget = Number(row[1]) || 0;\n  const spent = Number(row[2]) || 0;\n  const remaining = budget - spent;\n  const status = budget > 0 ? (remaining >= 0 ? '✅' : '⚠️') : '—';\n  lines.push(`${status} ${cat}: Spent ${spent.toLocaleString()} / Budget ${budget.toLocaleString()} (Remaining: ${remaining.toLocaleString()})`);\n}\n\nreturn [{\n  json: {\n    ...originalData,\n    replyText: lines.join('\\n')\n  }\n}];"
       },
-      "id": "189c5860-f7f3-467c-9b9b-4a919e390b00",
+      "id": "83e0af87-b870-4ecd-9900-43e7dac1b8ad",
       "name": "Format Budget Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        14928
+        14816,
+        22688
       ]
     },
     {
@@ -1387,13 +1385,13 @@
         "jsonBody": "={\n  \"values\": [[ {{ $json.amount }} ]]\n}",
         "options": {}
       },
-      "id": "9f7dded0-7e96-45e0-8b8c-6259fb02a837",
+      "id": "f2a4420b-5bad-462a-b203-94650d051ef1",
       "name": "Set Budget Value",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3968,
-        12832
+        14592,
+        20032
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1406,26 +1404,26 @@
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst categories = ['Makanan & Minuman', 'Transportasi', 'Tagihan', 'Hiburan', 'Belanja', 'Kesehatan', 'Langganan', 'Lain-lain'];\nconst idx = categories.indexOf(data.category);\nconst budgetRow = idx >= 0 ? idx + 2 : 9; // row 2-9, default to Lain-lain (row 9)\n\nreturn [{\n  json: {\n    ...data,\n    budgetRow\n  }\n}];"
       },
-      "id": "cfb93c66-accb-4868-9e45-91b1bea2ed1c",
+      "id": "a018a6e9-d07a-4927-a406-0245d4615e40",
       "name": "Prepare Budget Update",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3744,
-        12832
+        14368,
+        20032
       ]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst originalData = $('Route by Intent').first().json;\nreturn [{\n  json: {\n    ...originalData,\n    replyText: `✅ Budget set: ${originalData.category} = ${originalData.currency || 'IDR'} ${Number(originalData.amount).toLocaleString()} per ${originalData.period || 'month'}`\n  }\n}];"
       },
-      "id": "4bc701b5-dfe3-4c2f-952e-c42d665ee340",
+      "id": "76a83300-bc9f-4545-bb58-d6d089cbeb96",
       "name": "Format Budget Set Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        12832
+        14816,
+        20032
       ]
     },
     {
@@ -1441,13 +1439,13 @@
           }
         }
       },
-      "id": "eec49e7c-860c-4d6a-80a4-254ea8bc5741",
+      "id": "9ffddc28-6049-4475-9858-6b5693adf026",
       "name": "Read Month Data for Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2272,
-        13488
+        12672,
+        20624
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1461,26 +1459,26 @@
       "parameters": {
         "jsCode": "const apiResponse = $input.first().json;\nconst allRows = apiResponse.values || [];\nconst originalData = $('Route by Intent').first().json;\n\n// allRows[0] = header [Date, Description, Category, Amount, ...]\n// allRows[1..n] = data rows\nconst byCategory = {};\nlet total = 0;\nlet txCount = 0;\n\nfor (let i = 1; i < allRows.length; i++) {\n  const row = allRows[i];\n  const cat = row[2] || 'Lain-lain'; // Column C = Category\n  const amt = Number(row[3]) || 0;    // Column D = Amount\n  byCategory[cat] = (byCategory[cat] || 0) + amt;\n  total += amt;\n  txCount++;\n}\n\nlet lines = [`📊 Expense Report (${originalData.period || 'This Month'}):\\n`];\nconst sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);\n\nfor (const [cat, amt] of sorted) {\n  const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;\n  lines.push(`• ${cat}: IDR ${amt.toLocaleString()} (${pct}%)`);\n}\n\nif (txCount === 0) {\n  lines.push('No expenses recorded this period.');\n}\n\nlines.push(`\\n💰 Total: IDR ${total.toLocaleString()}`);\nlines.push(`📝 Transactions: ${txCount}`);\n\nreturn [{\n  json: {\n    ...originalData,\n    replyText: lines.join('\\n')\n  }\n}];"
       },
-      "id": "1ee0abb8-09b9-4660-84db-4bc2ba0420e5",
+      "id": "be13549c-6bed-47ca-8dcf-70b3a555fbeb",
       "name": "Generate Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        15120
+        14816,
+        22880
       ]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst splitWith = data.splitWith;\nconst totalAmount = Number(data.amount);\nconst shareAmount = Math.round(totalAmount / 2);\n\nreturn [{\n  json: {\n    ...data,\n    selfAmount: shareAmount,\n    otherAmount: totalAmount - shareAmount,\n    otherProfile: splitWith,\n    replyText: `✅ Split recorded: ${data.description} IDR ${totalAmount.toLocaleString()}\\n• Your share: IDR ${shareAmount.toLocaleString()}\\n• ${splitWith}'s share: IDR ${(totalAmount - shareAmount).toLocaleString()}`\n  }\n}];"
       },
-      "id": "9587c9d0-b54e-4304-abbf-9f2382dd9508",
+      "id": "e950b79a-e028-480d-887a-d54fa3b9817b",
       "name": "Handle Split Expense",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3520,
-        13776
+        14144,
+        20912
       ]
     },
     {
@@ -1505,13 +1503,13 @@
         },
         "options": {}
       },
-      "id": "26615d80-a103-4f4b-9049-36a3e2556559",
+      "id": "39cfdfcf-7a71-4b28-b6b6-6598750927aa",
       "name": "Lookup Split Target Profile",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        3744,
-        13776
+        14368,
+        20912
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1524,13 +1522,13 @@
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst targetRows = $('Lookup Split Target Profile').all();\nconst target = targetRows.find(r => r.json.profileName === data.otherProfile);\n\nif (!target) {\n  return [{\n    json: {\n      ...data,\n      replyText: `⚠️ Profile \"${data.otherProfile}\" not found. They need to register first.`\n    }\n  }];\n}\n\nconst now = new Date();\nconst monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst monthSheet = monthNames[now.getMonth()] + '-' + now.getFullYear();\n\nreturn [\n  {\n    json: {\n      spreadsheetId: data.spreadsheetId,\n      channel: data.channel,\n      userId: data.userId,\n      profileName: data.profileName,\n      sessionId: data.sessionId,\n      monthSheet,\n      Date: data.date,\n      Description: data.description,\n      Category: data.category,\n      Amount: data.selfAmount,\n      Currency: data.currency || 'IDR',\n      'Split With': data.otherProfile,\n      Recurring: '',\n      Notes: 'Split: your share',\n      replyText: data.replyText\n    }\n  },\n  {\n    json: {\n      spreadsheetId: target.json.spreadsheetId,\n      channel: data.channel,\n      userId: data.userId,\n      profileName: data.profileName,\n      sessionId: data.sessionId,\n      monthSheet,\n      Date: data.date,\n      Description: data.description,\n      Category: data.category,\n      Amount: data.otherAmount,\n      Currency: data.currency || 'IDR',\n      'Split With': data.profileName,\n      Recurring: '',\n      Notes: `Split: ${data.otherProfile}'s share`,\n      replyText: data.replyText\n    }\n  }\n];"
       },
-      "id": "3d5b5eb6-787d-4855-9f9e-4c49f331bc72",
+      "id": "82b74e2f-a632-4fce-b40f-710a24db906a",
       "name": "Record Split in Both Sheets",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3968,
-        13776
+        14592,
+        20912
       ]
     },
     {
@@ -1544,13 +1542,13 @@
         "jsonBody": "={\n  \"values\": [\n    [\n      {{ JSON.stringify($json.Date || '') }},\n      {{ JSON.stringify($json.Description || '') }},\n      {{ JSON.stringify($json.Category || '') }},\n      {{ $json.Amount || 0 }},\n      {{ JSON.stringify($json.Currency || 'IDR') }},\n      {{ JSON.stringify($json['Split With'] || '') }},\n      {{ JSON.stringify($json.Recurring || '') }},\n      {{ JSON.stringify($json.Notes || '') }}\n    ]\n  ]\n}",
         "options": {}
       },
-      "id": "6057f95f-3610-4cac-9931-d97327d84cb2",
+      "id": "738a02fd-e4a7-4417-8f3d-f36e0d84a4da",
       "name": "Record Split Rows",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4192,
-        13776
+        14816,
+        20912
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1563,13 +1561,13 @@
       "parameters": {
         "jsCode": "const data = $input.first().json;\nreturn [{\n  json: {\n    ...data,\n    replyText: `💡 Expense Tracker Help:\\n\\n📝 Record expense:\\n• \"Lunch 45k\"\\n• \"Rp 150.000 electricity bill\"\\n• Send a receipt photo/PDF\\n\\n💰 Budget:\\n• \"Set food budget 500k\"\\n• \"Check my budget\"\\n\\n📊 Reports:\\n• \"Monthly report\"\\n• \"What did I spend this week?\"\\n\\n🔄 Recurring:\\n• \"Netflix 15k recurring monthly\"\\n• \"List recurring expenses\"\\n\\n👥 Split:\\n• \"Dinner 200k split with @ProfileName\"\\n\\n📋 Merge:\\n• \"Merge report with @ProfileName\"`\n  }\n}];"
       },
-      "id": "147581ca-55c8-46ba-9358-acd7e8ba6b0c",
+      "id": "5f3679eb-b608-4c98-a1da-aaea29461db5",
       "name": "Format Help Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        13968
+        14816,
+        21104
       ]
     },
     {
@@ -1668,13 +1666,13 @@
         },
         "options": {}
       },
-      "id": "96a58501-87de-4909-b044-71e42ca1b263",
+      "id": "3d7b35c1-f0a7-45a5-99a6-8c63a8c0a8d7",
       "name": "Route Reply to Channel",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4416,
-        13648
+        15040,
+        20752
       ],
       "alwaysOutputData": false
     },
@@ -1700,28 +1698,30 @@
         "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{  $('Update Dashboard Spent').item.json.userId ?  $('Update Dashboard Spent').item.json.userId : $json.userId }}\",\n  \"text\": {\n    \"body\": {{ $('Update Dashboard Spent').item.json.replyText ? $('Update Dashboard Spent').item.json.replyText : $json.replyText }}\n  }\n}",
         "options": {}
       },
-      "id": "c777d7c9-3d20-4f6d-9528-c54d71b3a729",
+      "id": "91a503da-ff24-4767-80bc-1194bac4cfb9",
       "name": "Send WhatsApp Reply",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4640,
-        13392
+        15264,
+        20448
       ]
     },
     {
       "parameters": {
         "chatId": "={{ $json.userId ? $json.userId : $('Parse AI Response').item.json.userId }}",
         "text": "={{ $json.replyText ? $json.replyText : $('Parse AI Response').item.json.replyText }}",
-        "additionalFields": {}
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('Check Awaiting Profile').item.json.rawPayload.message.message_id }}"
+        }
       },
-      "id": "0f27edc0-ca46-4cb7-8cd9-1a463b3e82b6",
+      "id": "5f4ff523-6aef-4717-9866-26f06afcd69c",
       "name": "Send Telegram Reply",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4640,
-        13584
+        16352,
+        20880
       ],
       "webhookId": "37ad53db-e853-450e-967e-6de3c3d6c238",
       "credentials": {
@@ -1739,39 +1739,39 @@
           "responseCode": 200
         }
       },
-      "id": "d89f0191-93b3-4f81-965c-c7f75d6dd68a",
+      "id": "0f5cdf26-f01a-4152-b7f6-f37235e7704e",
       "name": "Send Webhook Reply",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        4640,
-        13776
+        15264,
+        22128
       ]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\nreturn [{\n  json: {\n    output: data.replyText || 'Sorry, something went wrong.',\n    sessionId: data.sessionId || data.userId\n  }\n}];"
       },
-      "id": "9055d534-aaf3-4fe0-a349-29a2a3fa5583",
+      "id": "ab77526c-aeb8-4420-b4be-d8c9886e55e2",
       "name": "Send Chat Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4640,
-        13968
+        15264,
+        22320
       ]
     },
     {
       "parameters": {
         "jsCode": "const msg = $input.first().json;\nreturn [{\n  json: {\n    ...msg,\n    replyText: 'Saving your profile name...',\n    action: 'savingProfileName',\n    state: 'savingProfileName'\n  }\n}];"
       },
-      "id": "07eb5262-2dfa-47d9-aed5-3f6f3330d722",
+      "id": "5e3d45cd-1e27-4277-ad9e-a55997d18651",
       "name": "Save Profile Name",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        14400
+        10752,
+        21600
       ]
     },
     {
@@ -1978,10 +1978,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        576,
-        14304
+        10976,
+        21504
       ],
-      "id": "947d4268-7178-4ebc-b5dc-81170033b52e",
+      "id": "0aa07e8d-4742-40c7-b7eb-397f5200aa89",
       "name": "Save Awaiting State",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2195,10 +2195,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3968,
-        14544
+        14592,
+        21904
       ],
-      "id": "d73ebfec-ee92-4cdd-ba29-4d029aefb689",
+      "id": "005a744b-0b0f-4252-89c3-4b0e461c8a24",
       "name": "Register User in Master",
       "executeOnce": false,
       "credentials": {
@@ -2219,13 +2219,13 @@
         "jsonBody": "={\n  \"values\": [\n    [\n      \"{{ ($json.date || $now.format('yyyy-MM-dd')) + 'T' + $now.format('HH:mm:ss') }}\",\n      \"{{ $json.description || '' }}\",\n      \"{{ $json.source || 'other' }}\",\n      \"{{ $json.amount || 0 }}\",\n      \"{{ $json.currency || 'IDR' }}\",\n      \"{{ $json.recurring ? 'yes' : '' }}\",\n      \"{{ $json.notes || '' }}\",\n      \"{{ $now.format('MMM') }}\",\n      \"{{ $now.format('yyyy') }}\"\n    ]\n  ]\n}",
         "options": {}
       },
-      "id": "9b2ede4c-9b48-4432-b2c5-085bfc42566f",
+      "id": "34a6f4c8-a197-44c1-8c32-4b2311dd0f3d",
       "name": "Record Income Row",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4192,
-        12336
+        14816,
+        19536
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2245,13 +2245,13 @@
         "jsonBody": "{\n  \"requests\": [\n    {\n      \"addSheet\": {\n        \"properties\": {\n          \"title\": \"Income\"\n        }\n      }\n    }\n  ]\n}",
         "options": {}
       },
-      "id": "94d497ab-5224-4e05-bc77-242ceb8e167b",
+      "id": "2856e7bb-3cea-4c98-94bb-b7ba0f537ff1",
       "name": "Setup Income Sheet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3232,
-        14832
+        13920,
+        22128
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2271,13 +2271,13 @@
         "jsonBody": "{\n  \"values\": [\n    [\n      \"Date\",\n      \"Description\",\n      \"Source\",\n      \"Amount\",\n      \"Currency\",\n      \"Recurring\",\n      \"Notes\",\n      \"Month\",\n      \"Year\"\n    ]\n  ]\n}",
         "options": {}
       },
-      "id": "ec0be1f9-3a8b-40dd-908a-41287f171aaf",
+      "id": "7e585ce7-7007-45aa-ac26-73ec99389963",
       "name": "Write Income Headers",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3520,
-        14832
+        14144,
+        22128
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2290,13 +2290,13 @@
       "parameters": {
         "jsCode": "const ctx = $input.first().json;\nconst data = ctx.values || ctx.dashboardData || ctx.rawSheetData || {};\nreturn [{ json: { budgetData: {\n  userRequest:     ctx.messageText || '',\n  intent:          ctx.parsedIntent || '',\n  profileName:     ctx.profileName || '',\n  period:          ctx.period || 'this month',\n  spreadsheetData: JSON.stringify(data),\n  spreadsheetId:   ctx.spreadsheetId,\n  channel:         ctx.channel,\n  userId:          ctx.userId,\n  sessionId:       ctx.sessionId,\n  rawContext:      ctx\n}} }];"
       },
-      "id": "c503c69d-f3a2-4478-a290-9128d02bd072",
+      "id": "307bb661-d822-48fa-a32d-fc964b679a28",
       "name": "Prepare Budget Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2496,
-        12592
+        12896,
+        19776
       ]
     },
     {
@@ -2317,52 +2317,52 @@
         "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"temperature\": 0.7,\n  \"max_completion_tokens\": 1024,\n  \"stream\": false,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a personal finance assistant analyzing a user's expense and income data.\\n\\nYou will receive:\\n- userRequest: what the user asked\\n- intent: the action they wanted\\n- spreadsheetData: raw JSON from their Google Sheets\\n- profileName: the user's name\\n- period: the time period\\n\\nYour task:\\n1. Read the spreadsheetData carefully\\n2. Answer the userRequest directly and conversationally in the user's language\\n3. Include specific numbers and percentages where relevant\\n4. Highlight anything notable: overspending, surplus income, categories near budget limit\\n5. Suggest one practical tip if relevant\\n6. Format for messaging: use emoji, short paragraphs, bullet points - NO markdown tables\\n7. Return ONLY the reply text (no JSON, no wrapper)\\n\\nKeep responses concise (under 300 words) but insightful.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{ 'User: ' + $json.userRequest + '\\\\n\\\\nProfile: ' + $json.profileName + '\\\\nPeriod: ' + $json.period + '\\\\n\\\\nData:\\\\n' + $json.spreadsheetData }}\"\n    }\n  ]\n}",
         "options": {}
       },
-      "id": "15a11db8-5047-4825-aef7-4300cbc9a4be",
+      "id": "91740b43-f19d-4c3c-8192-5f591a78bcbd",
       "name": "AI Analysis Agent (Budget)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3968,
-        14736
+        14592,
+        22496
       ]
     },
     {
       "parameters": {
         "jsCode": "const ctx = $input.first().json;\nconst raw = ctx.choices && ctx.choices[0] ? ctx.choices[0].message.content : (ctx.replyText || 'Analysis unavailable');\nconst orig = ctx.rawContext || {};\nreturn [{ json: { ...orig, replyText: raw } }];"
       },
-      "id": "cf1785df-1db5-40df-bf72-6b65b64b22ae",
+      "id": "c88f0111-5ced-40cb-a3d5-49f4f6cb2839",
       "name": "Extract Budget Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        14736
+        14816,
+        22496
       ]
     },
     {
       "parameters": {
         "jsCode": "const ctx = $input.first().json;\nconst data = ctx.values || ctx.dashboardData || ctx.rawSheetData || {};\nreturn [{ json: { monthlyData: {\n  userRequest:     ctx.messageText || '',\n  intent:          ctx.parsedIntent || '',\n  profileName:     ctx.profileName || '',\n  period:          ctx.period || 'this month',\n  spreadsheetData: JSON.stringify(data),\n  spreadsheetId:   ctx.spreadsheetId,\n  channel:         ctx.channel,\n  userId:          ctx.userId,\n  sessionId:       ctx.sessionId,\n  rawContext:      ctx\n}} }];"
       },
-      "id": "9a34eb58-c588-4971-a73c-f4fd7e3949c8",
+      "id": "84c46329-b791-4695-bff8-96c0a13fb4e0",
       "name": "Prepare Report Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2496,
-        13488
+        12896,
+        20624
       ]
     },
     {
       "parameters": {
         "jsCode": "const ctx = $input.first().json;\nconst raw = ctx.choices && ctx.choices[0] ? ctx.choices[0].message.content : (ctx.replyText || ctx.output || 'Analysis unavailable');\nconst orig = ctx.rawContext || {};\nreturn [{ json: { ...orig, replyText: raw } }];"
       },
-      "id": "44c6010c-a460-4b57-b4f3-585627b559a4",
+      "id": "82b92b84-97dc-4a0c-beaa-759239a3a23e",
       "name": "Extract Report Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3520,
-        12592
+        13920,
+        19776
       ]
     },
     {
@@ -2374,10 +2374,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        3264,
-        12800
+        13712,
+        20000
       ],
-      "id": "fa614bcf-15c8-4234-adcb-3eab1f8fba74",
+      "id": "b4054750-55fd-42b0-990a-6e2391ecf879",
       "name": "Simple Memory",
       "disabled": true
     },
@@ -2393,10 +2393,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        3168,
-        12592
+        13568,
+        19776
       ],
-      "id": "ef8a2740-e930-487a-a647-90c224dbf2d5",
+      "id": "6ebb6228-f2b4-4d11-92d1-6fd3e05516bd",
       "name": "AI Agent"
     },
     {
@@ -2406,13 +2406,13 @@
         "nodeCredentialType": "googleSheetsOAuth2Api",
         "options": {}
       },
-      "id": "6c4a78d3-3c7e-4f7e-9083-3f5dc4b3b93c",
+      "id": "99aa12b8-bcba-4ac6-9171-c79d41dff493",
       "name": "Read Income Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2272,
-        12976
+        12672,
+        20176
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2425,13 +2425,13 @@
       "parameters": {
         "jsCode": "const ctx = $input.first().json;\nconst data = ctx.values || ctx.dashboardData || ctx.rawSheetData || {};\nreturn [{ json: { incomeData: {\n  userRequest:     ctx.messageText || '',\n  intent:          ctx.parsedIntent || '',\n  profileName:     ctx.profileName || '',\n  period:          ctx.period || 'this month',\n  incomeSpreadsheetData: JSON.stringify(data),\n  spreadsheetId:   ctx.spreadsheetId,\n  channel:         ctx.channel,\n  userId:          ctx.userId,\n  sessionId:       ctx.sessionId,\n  rawContext:      ctx\n}} }];"
       },
-      "id": "f7348ec2-2c52-4ebb-b663-37f714479983",
+      "id": "7d8fc815-68f0-4449-ae44-360569478847",
       "name": "Prepare Income Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2496,
-        12976
+        12896,
+        20176
       ]
     },
     {
@@ -2441,10 +2441,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2720,
-        12576
+        13120,
+        19760
       ],
-      "id": "a63ada5b-5552-4281-9d57-d1ec9f0bff15",
+      "id": "c2e7b809-b450-467c-80a0-29fa567cf226",
       "name": "Merge",
       "executeOnce": false
     },
@@ -2452,13 +2452,13 @@
       "parameters": {
         "jsCode": "// Combine all 3 items (budgetData, incomeData, monthlyData) into one single item\nconst items = $input.all();\nconst combined = {};\nfor (const item of items) {\n  Object.assign(combined, item.json);\n}\n// Extract shared context fields from the first available data block\nconst rawContext =\n  (combined.budgetData && combined.budgetData.rawContext) ||\n  (combined.incomeData && combined.incomeData.rawContext) ||\n  (combined.monthlyData && combined.monthlyData.rawContext) ||\n  {};\nreturn [{ json: { ...combined, ...rawContext } }];"
       },
-      "id": "4eb2e85a-e4f0-4461-8dd1-53e4e62825aa",
+      "id": "ff6ea3a8-c625-49e4-90ca-54a86a7a0f8c",
       "name": "Combine Report Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2944,
-        12592
+        13344,
+        19776
       ]
     },
     {
@@ -2469,10 +2469,10 @@
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.2,
       "position": [
-        4864,
-        13968
+        15488,
+        22320
       ],
-      "id": "cb688f8d-67c9-49e5-8137-78d439b99282",
+      "id": "2e49ac00-e72f-45c0-8aa2-42f5d6cf06d4",
       "name": "Chat",
       "webhookId": "64e78d48-ec13-4e13-a1f3-1a5611b9f6f2",
       "executeOnce": false,
@@ -2488,10 +2488,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        -768,
-        15040
+        9632,
+        22880
       ],
-      "id": "53fb45a3-baee-4efe-ab0e-0da10102f653",
+      "id": "e5ad48be-6a6c-4505-855a-2060914f803a",
       "name": "When chat message received",
       "webhookId": "59a4fc6e-12b5-41f3-a064-865732315445"
     },
@@ -2506,10 +2506,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1472,
-        12992
+        11872,
+        20112
       ],
-      "id": "5b9135f2-40a9-4115-8751-f35969839836",
+      "id": "307cd3a0-b940-47e8-8c50-fe714e67d6db",
       "name": "AI Agent (Groq)"
     },
     {
@@ -2522,10 +2522,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -768,
-        15344
+        9632,
+        23104
       ],
-      "id": "762986d4-028c-427f-a971-c7f894c40703",
+      "id": "c5a131db-d0ac-4779-95ed-165d57905914",
       "name": "Get Spreadsheet detail",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2548,10 +2548,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -544,
-        15344
+        9856,
+        23104
       ],
-      "id": "b7dc74bb-105c-48d1-964f-b0a0260ca8f0",
+      "id": "690f0295-3734-462b-8529-fcf41b5b4af9",
       "name": "Format Number of Dashboard",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2567,10 +2567,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3744,
-        14528
+        14368,
+        21888
       ],
-      "id": "b51231dd-9d9e-4b47-9da8-c01357c36e57",
+      "id": "81c6580b-8a94-4c7e-8122-df66b98198aa",
       "name": "Merge1"
     },
     {
@@ -2584,10 +2584,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1456,
-        13184
+        11888,
+        20336
       ],
-      "id": "5c9a541f-20a7-41bd-a301-e34f0df173a7",
+      "id": "ab934ed9-0742-433a-bb0f-ce36841fadb2",
       "name": "Groq Chat Model intent",
       "credentials": {
         "groqApi": {
@@ -2605,12 +2605,104 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        1584,
-        13184
+        12016,
+        20336
       ],
-      "id": "269a57e7-743a-4f14-b76c-7cac3a65c038",
+      "id": "16c1d964-544f-42f1-a63a-08c8b6e32cb5",
       "name": "Simple Memory intent",
       "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Your request has been received and is being processed. Please wait...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        15040,
+        22416
+      ],
+      "id": "7db29f35-eec4-4869-a21c-855dee9651b7",
+      "name": "Send a loading message",
+      "webhookId": "8cfc6001-12e7-4e1c-851f-4c05b69f598e",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZbU40jBmvjhBVd3d",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        15920,
+        20880
+      ],
+      "id": "768fb7e0-a7ee-420f-a8ae-69db036029a3",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "operation": "deleteMessage",
+        "chatId": "={{ $json.result.chat.id }}",
+        "messageId": "={{ $json.result.message_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        15696,
+        20960
+      ],
+      "id": "0d811fa3-c6a2-4f3c-bcab-1267d6ea9d71",
+      "name": "Delete a chat message",
+      "webhookId": "e55f8639-b9a5-47ae-96bf-f40248c6166f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZbU40jBmvjhBVd3d",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        15264,
+        20960
+      ],
+      "id": "536e7d3b-2a67-4e71-9457-61e4e51aacd8",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all 3 items (budgetData, incomeData, monthlyData) into one single item\nconst items = $input.all();\nconst combined = {};\nfor (const item of items) {\n  Object.assign(combined, item.json);\n}\n// Extract shared context fields from the first available data block\n\nreturn [{ json: { ...combined } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        15472,
+        20960
+      ],
+      "id": "6360b92c-7031-4a38-b877-a2ce930f9aff",
+      "name": "Combine for delete message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all 3 items (budgetData, incomeData, monthlyData) into one single item\nconst items = $input.all();\nconst combined = {};\nfor (const item of items) {\n  Object.assign(combined, item.json);\n}\n// Extract shared context fields from the first available data block\n\nreturn [{ json: { ...combined } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16128,
+        20880
+      ],
+      "id": "381288ba-bb78-4222-9179-9f05b4b9622a",
+      "name": "Combined message to send"
     }
   ],
   "pinData": {},
@@ -2629,6 +2721,11 @@
     "Telegram Trigger": {
       "main": [
         [
+          {
+            "node": "Send a loading message",
+            "type": "main",
+            "index": 0
+          },
           {
             "node": "Normalize Telegram",
             "type": "main",
@@ -3332,7 +3429,12 @@
         ],
         [
           {
-            "node": "Send Telegram Reply",
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
             "type": "main",
             "index": 0
           }
@@ -3676,6 +3778,72 @@
           }
         ]
       ]
+    },
+    "Send a loading message": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Combined message to send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a chat message": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Combine for delete message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine for delete message": {
+      "main": [
+        [
+          {
+            "node": "Delete a chat message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combined message to send": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -3684,7 +3852,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "efd51a27-5d7a-4a96-bc69-3a82116bdac6",
+  "versionId": "fa7ef259-a80c-43ac-9ca8-1ae2e02394fd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "707092ed3a35ea3f554e1be6a66295e3800621eff6a827de689cbe34c6f5a4c8"
