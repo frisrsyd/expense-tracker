@@ -13,8 +13,8 @@
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
       "position": [
-        -736,
-        12896
+        -768,
+        13392
       ],
       "webhookId": "wa-webhook-id",
       "disabled": true
@@ -33,8 +33,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -736,
-        13088
+        -768,
+        13584
       ],
       "webhookId": "83f1ddf4-bc0c-4735-964c-2f2260f3db64",
       "credentials": {
@@ -56,8 +56,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -736,
-        13280
+        -768,
+        13776
       ],
       "webhookId": "webhook-expense-tracker"
     },
@@ -70,8 +70,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        13472
+        -544,
+        13968
       ]
     },
     {
@@ -83,8 +83,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        12896
+        -544,
+        13392
       ]
     },
     {
@@ -96,8 +96,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        13088
+        -544,
+        13584
       ]
     },
     {
@@ -109,8 +109,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        13280
+        -544,
+        13776
       ]
     },
     {
@@ -140,8 +140,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -288,
-        13088
+        -320,
+        13584
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -160,8 +160,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -64,
-        12656
+        -96,
+        13040
       ]
     },
     {
@@ -270,8 +270,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        160,
-        12624
+        128,
+        13008
       ]
     },
     {
@@ -283,8 +283,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        12656
+        352,
+        13136
       ]
     },
     {
@@ -303,8 +303,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2976,
-        13152
+        2720,
+        13664
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -315,15 +315,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const spreadsheetId = $input.first().json.spreadsheetId;\nconst profileName = $('Route User State').first().json.messageText;\nconst categories = [\n  'Makanan & Minuman', 'Transportasi', 'Tagihan', 'Hiburan',\n  'Belanja', 'Kesehatan', 'Langganan', 'Lain-lain'\n];\n\nconst values = [['Category', 'Budget', 'Spent This Month', 'Remaining']];\nfor (const cat of categories) {\n  values.push([cat, 0, 0, 0]);\n}\n\nreturn [{\n  json: {\n    spreadsheetId,\n    profileName,\n    dashboardValues: JSON.stringify({ values })\n  }\n}];"
+        "jsCode": "const spreadsheetId = $input.first().json.spreadsheetId;\nconst profileName = $('Route User State').first().json.messageText;\nconst categories = [\n  'Makanan & Minuman', 'Transportasi', 'Tagihan', 'Hiburan',\n  'Belanja', 'Kesehatan', 'Langganan', 'Lain-lain'\n];\n\nconst values = [['Category', 'Budget', 'Spent This Month', 'Remaining']];\nlet rowNumber = 2;\nfor (const cat of categories) {\n  values.push([\n    cat,\n    0,\n    0,\n    `=B${rowNumber}-C${rowNumber}`,\n  ]);\n  rowNumber++;\n}\n\nreturn [{\n  json: {\n    spreadsheetId,\n    profileName,\n    dashboardValues: JSON.stringify({ values })\n  }\n}];"
       },
       "id": "42ca5b42-412b-49b8-b873-c886e51e73a3",
       "name": "Setup Dashboard Headers",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3200,
-        13152
+        2944,
+        13664
       ]
     },
     {
@@ -342,8 +342,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3648,
-        12896
+        3520,
+        13376
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -368,8 +368,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3424,
-        13056
+        3520,
+        13568
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -387,8 +387,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        13056
+        4192,
+        13472
       ],
       "executeOnce": true
     },
@@ -424,8 +424,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        384,
-        11920
+        352,
+        12112
       ]
     },
     {
@@ -509,8 +509,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        608,
-        11904
+        576,
+        12096
       ]
     },
     {
@@ -524,8 +524,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        832,
-        12480
+        800,
+        12960
       ],
       "webhookId": "e251f7a0-3064-4b3c-9150-6f7bf09076f5",
       "credentials": {
@@ -544,8 +544,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1056,
-        12480
+        1024,
+        12960
       ]
     },
     {
@@ -564,8 +564,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1280,
-        12480
+        1248,
+        12960
       ],
       "credentials": {
         "groqApi": {
@@ -583,8 +583,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1568,
-        12480
+        1536,
+        12960
       ]
     },
     {
@@ -659,6 +659,29 @@
                 "combinator": "and"
               },
               "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8bb54472-dfb6-4fb1-b802-10006a4b6d1a",
+                    "leftValue": "={{ $env.MODEL_PROVIDER }}",
+                    "rightValue": "gemini",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -669,8 +692,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1280,
-        11488
+        1248,
+        11776
       ]
     },
     {
@@ -687,8 +710,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1504,
-        10976
+        1472,
+        11136
       ]
     },
     {
@@ -705,8 +728,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1504,
-        13408
+        1472,
+        12560
       ]
     },
     {
@@ -723,26 +746,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1504,
-        11376
-      ]
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.messageText }}",
-        "hasOutputParser": true,
-        "options": {
-          "systemMessage": "=You are a multilingual expense tracking assistant. Detect the user's language and ALWAYS respond in that language.\n\nAnalyze the user message and return ONLY valid JSON (no markdown, no backticks, no explanation). Use one of these schemas:\n\nINTENTS:\n1. {\"intent\":\"record_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":null,\"recurring\":null,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n2. {\"intent\":\"check_budget\",\"category\":null,\"replyText\":\"message asking to check budget\"}\n3. {\"intent\":\"set_budget\",\"category\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"period\":\"monthly\",\"replyText\":\"confirmation message\"}\n4. {\"intent\":\"get_report\",\"period\":\"week|month|year\",\"replyText\":\"message asking for report\"}\n5. {\"intent\":\"split_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":\"profileName\",\"splitType\":\"equal\",\"replyText\":\"confirmation message\"}\n6. {\"intent\":\"list_recurring\",\"replyText\":\"message\"}\n7. {\"intent\":\"cancel_recurring\",\"description\":\"string\",\"replyText\":\"message\"}\n8. {\"intent\":\"merge_report\",\"profiles\":[],\"period\":\"month\",\"replyText\":\"message\"}\n9. {\"intent\":\"help\",\"replyText\":\"help text in user language\"}\n\n\n10. {\"intent\":\"record_income\",\"amount\":number,\"description\":\"string\",\"source\":\"salary|freelance|investment|business|other\",\"date\":\"YYYY-MM-DD\",\"currency\":\"IDR\",\"recurring\":false,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n11. {\"intent\":\"check_balance\",\"period\":\"this_month|last_month|this_year\",\"replyText\":\"message\"}\nCATEGORIES (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain\n\nRULES:\n- \"k\" suffix = x1000 (45k = 45000), \"rb\" suffix = x1000 (25rb = 25000)\n- \"jt\" or \"juta\" = x1000000 (1.5jt = 1500000)\n- if amount is contain formula please solve first (593341+44000\n=637341), please make sure you calculate right number, because this is financial of the user\n- Default currency: IDR\n- If no date specified, use {{ $today }} date on format \"yyyy-mm-dd\"\n- Auto-detect category from context (food words -> Makanan & Minuman, transport -> Transportasi, etc.)\n- For splits: parse \"@ProfileName\" or \"split with ProfileName\" or \"bagi dengan ProfileName\"\n- For recurring: detect \"berulang\", \"recurring\", \"tiap bulan\", \"every month\"\n\n- For income: \"terima gaji\", \"dapat freelance\", \"pendapatan\", \"income\", \"masuk uang\", \"dividen\", \"bayaran\" → use record_income intent, source: salary=gaji, freelance=freelance/proyek, investment=investasi/dividen/saham, business=bisnis/jualan\n- For balance: \"saldo\", \"net balance\", \"cashflow\", \"income vs pengeluaran\", \"berapa sisa\" → use check_balance intent\n- ALWAYS include replyText with a human-friendly confirmation in the user's language \n- Return ONLY the JSON object, nothing else"
-        }
-      },
-      "id": "e3d80980-ed9e-491e-9ce0-800fd1ec52b9",
-      "name": "AI Agent (Groq)",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.7,
-      "position": [
-        1504,
-        11872
+        1472,
+        11536
       ]
     },
     {
@@ -758,14 +763,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1520,
-        11200
+        1488,
+        11360
       ],
       "disabled": true
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.0-flash-001",
+        "modelName": "models/gemini-2.0-flash",
         "options": {
           "maxOutputTokens": 2048,
           "temperature": 0.2
@@ -776,8 +781,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        1584,
-        13632
+        1552,
+        12784
       ],
       "credentials": {
         "googlePalmApi": {
@@ -796,8 +801,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        1584,
-        11600
+        1552,
+        11760
       ],
       "disabled": true
     },
@@ -814,8 +819,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1520,
-        12096
+        3152,
+        11712
       ],
       "credentials": {
         "groqApi": {
@@ -833,8 +838,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        1648,
-        11200
+        1616,
+        11360
       ]
     },
     {
@@ -846,8 +851,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1856,
-        11808
+        1824,
+        11904
       ]
     },
     {
@@ -1109,8 +1114,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        2080,
-        11680
+        2048,
+        11776
       ]
     },
     {
@@ -1125,8 +1130,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2304,
-        11024
+        2272,
+        11056
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1144,8 +1149,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2528,
-        11024
+        2496,
+        11056
       ]
     },
     {
@@ -1178,8 +1183,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2752,
-        11024
+        2720,
+        11056
       ]
     },
     {
@@ -1198,8 +1203,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2976,
-        10944
+        2944,
+        10976
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1224,8 +1229,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3200,
-        10944
+        3232,
+        10976
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1250,8 +1255,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3424,
-        11024
+        3520,
+        11056
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1269,8 +1274,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3872,
-        11024
+        3968,
+        11056
       ]
     },
     {
@@ -1285,8 +1290,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3648,
-        11024
+        3744,
+        11056
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1311,8 +1316,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4096,
-        11024
+        4192,
+        11056
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1333,8 +1338,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3424,
-        11424
+        2272,
+        11520
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1352,8 +1357,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        13248
+        4192,
+        13856
       ]
     },
     {
@@ -1372,8 +1377,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3872,
-        11616
+        3968,
+        11760
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1391,8 +1396,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3648,
-        11616
+        3744,
+        11760
       ]
     },
     {
@@ -1404,8 +1409,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        11616
+        4192,
+        11760
       ]
     },
     {
@@ -1426,8 +1431,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3424,
-        12032
+        2272,
+        12416
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1446,8 +1451,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        13440
+        4192,
+        14048
       ]
     },
     {
@@ -1459,8 +1464,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3424,
-        12320
+        3520,
+        12704
       ]
     },
     {
@@ -1490,8 +1495,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        3648,
-        12320
+        3744,
+        12704
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1509,8 +1514,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3872,
-        12320
+        3968,
+        12704
       ]
     },
     {
@@ -1529,8 +1534,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4096,
-        12320
+        4192,
+        12704
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1548,8 +1553,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        12512
+        4192,
+        12896
       ]
     },
     {
@@ -1653,8 +1658,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4528,
-        12224
+        4416,
+        12576
       ],
       "alwaysOutputData": false
     },
@@ -1685,8 +1690,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4752,
-        11968
+        4640,
+        12320
       ]
     },
     {
@@ -1700,8 +1705,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4752,
-        12160
+        4640,
+        12512
       ],
       "webhookId": "37ad53db-e853-450e-967e-6de3c3d6c238",
       "credentials": {
@@ -1724,8 +1729,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        4752,
-        12352
+        4640,
+        12704
       ]
     },
     {
@@ -1737,8 +1742,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4752,
-        12544
+        4640,
+        12896
       ]
     },
     {
@@ -1750,8 +1755,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        12848
+        352,
+        13328
       ]
     },
     {
@@ -1958,8 +1963,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        608,
-        12752
+        576,
+        13232
       ],
       "id": "ef1fc52d-b622-4eac-bc8a-8c5c6a345556",
       "name": "Save Awaiting State",
@@ -1991,7 +1996,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "userId": "={{ $('Check Awaiting Profile').item.json.userId }}",
-            "createdDate": "={{ $('Check Awaiting Profile').item.json.rawPayload.message.date }}",
+            "createdDate": "={{ $now.format(\"yyyy-MM-dd\") }}",
             "userName": "={{ $('Check Awaiting Profile').item.json.profileData.userName }}",
             "messageText": "={{ $('Check Awaiting Profile').item.json.messageText }}",
             "mediaType": "={{ $('Check Awaiting Profile').item.json.mediaType }}",
@@ -1999,7 +2004,7 @@
             "mediaUrl": "={{ $('Check Awaiting Profile').item.json.mediaUrl }}",
             "rawPayload": "={{ $('Check Awaiting Profile').item.json.rawPayload }}",
             "language": "={{ $('Check Awaiting Profile').item.json.profileData.language }}",
-            "replyText": "=Saving your Data...",
+            "replyText": "=Saving your data, please wait..",
             "state": "={{ $('Check Awaiting Profile').item.json.profileData.state }}",
             "spreadsheetId": "={{ $json.spreadsheetId }}"
           },
@@ -2175,8 +2180,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3872,
-        13056
+        3968,
+        13472
       ],
       "id": "4309037e-d278-4285-9148-1da33ce9b07e",
       "name": "Register User in Master",
@@ -2204,8 +2209,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4096,
-        11232
+        4192,
+        11264
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2230,8 +2235,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3424,
-        13248
+        3232,
+        13760
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2256,8 +2261,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3648,
-        13248
+        3520,
+        13760
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2275,8 +2280,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3648,
-        11424
+        2496,
+        11520
       ]
     },
     {
@@ -2302,8 +2307,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3872,
-        11424
+        3968,
+        13664
       ]
     },
     {
@@ -2315,8 +2320,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        11424
+        4192,
+        13664
       ]
     },
     {
@@ -2328,8 +2333,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3648,
-        12032
+        2496,
+        12416
       ]
     },
     {
@@ -2341,8 +2346,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4304,
-        12032
+        3520,
+        11520
       ]
     },
     {
@@ -2354,8 +2359,8 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        1648,
-        12096
+        3264,
+        11728
       ],
       "id": "f048f752-93ec-4891-b71b-3207cd649419",
       "name": "Simple Memory",
@@ -2367,56 +2372,17 @@
         "text": "={{ '\\\\n\\\\nProfile: ' + $('Route by Intent').item.json.profileName + '\\\\nPeriod: ' + $('Route by Intent').item.json.period + '\\\\n\\\\nData for analyze:\\\\n' + JSON.stringify($input.first().json) + '\\\\n\\\\nUser Request:\\\\n' + $('Route by Intent').item.json.messageText }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=You are a personal finance assistant analyzing a user's expense and income data.\\n\\nYou will receive:\\n- User Request: what the user asked\\n- intent: the action they wanted\\n- Data for analyze: raw JSON from their Google Sheets as full raw data that must be you analyze, it include 3 data, budgetData, incomeData, and MonthlyData\\n- profileName: the user's name\\n- period: the time period\\n\\nYour task:\\n1. Read the Data for analyze carefully\\n2. Answer the userRequest directly and conversationally in the user's language\\n3. Include specific numbers and percentages where relevant\\n4. Highlight anything notable: overspending, surplus income, categories near budget limit\\n5. Format for messaging: straightforward, short paragraphs, bullet points - NO markdown tables\\n6. Return ONLY the replyText object (no JSON, no wrapper)\\n\\nKeep responses concise (under 100 words) but insightful. Please remember to answer based on intent and user request\\n\\n*PLEASE ALWAY REMEMBER NOW IS {{ $now }} AND TODAY IS {{ $today }}"
+          "systemMessage": "=You are a personal finance assistant analyzing a user's expense and income data.\\n\\nYou will receive:\\n- User Request: what the user asked\\n- intent: the action they wanted\\n- Data for analyze: raw JSON from their Google Sheets as full raw data that must be you analyze, it include 3 data, budgetData, incomeData, and MonthlyData\\n- profileName: the user's name\\n- period: the time period\\n\\nYour task:\\n1. Read the Data for analyze carefully\\n2. Answer the userRequest directly and conversationally in the user's language\\n3. Include specific numbers and percentages where relevant\\n4. Highlight anything notable: overspending, surplus income, categories near budget limit\\n5. Format for messaging: straightforward, short paragraphs, bullet points, highlight important info with bold text using *text* (depend on {{ $('Check Awaiting Profile').item.json.channel }} to format the replyText) - NO markdown tables\\n6. Return ONLY the replyText object (no JSON, no wrapper)\\n\\nKeep responses concise (under 100 words) but insightful. Please remember to answer based on intent and user request\\n\\n*PLEASE ALWAYS REMEMBER NOW IS {{ $now }} AND TODAY IS {{ $today }}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        3872,
-        12032
+        3168,
+        11520
       ],
       "id": "b2add42d-a4d7-4934-b215-c53060c9ead0",
       "name": "AI Agent"
-    },
-    {
-      "parameters": {
-        "model": "groq/compound",
-        "options": {
-          "maxTokensToSample": 2048,
-          "temperature": 0.2
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        3856,
-        12192
-      ],
-      "id": "a8a7814f-216f-4b48-b720-a8aa5a4f9a2b",
-      "name": "Groq Chat Model1",
-      "credentials": {
-        "groqApi": {
-          "id": "m5NPNO02GxojmMO8",
-          "name": "Groq account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Check Awaiting Profile').item.json.userId }}",
-        "contextWindowLength": 20
-      },
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [
-        3936,
-        12208
-      ],
-      "id": "40d6af73-e0f1-49e4-9159-41e0067cacf0",
-      "name": "Simple Memory1",
-      "disabled": true
     },
     {
       "parameters": {
@@ -2430,8 +2396,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3408,
-        11792
+        2272,
+        11904
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2449,8 +2415,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3632,
-        11792
+        2496,
+        11904
       ]
     },
     {
@@ -2460,8 +2426,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3888,
-        11808
+        2720,
+        11504
       ],
       "id": "ffd48c62-62d2-4ec1-8af4-e4d50bad823f",
       "name": "Merge",
@@ -2476,8 +2442,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4112,
-        11808
+        2944,
+        11520
       ]
     },
     {
@@ -2488,8 +2454,8 @@
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.2,
       "position": [
-        4960,
-        12544
+        4864,
+        12896
       ],
       "id": "193fa900-bfea-4ac4-bebe-4c73c7053285",
       "name": "Chat",
@@ -2507,12 +2473,129 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        -736,
-        13472
+        -768,
+        13968
       ],
       "id": "2991e063-623b-4bfc-a18a-e0331cd98451",
       "name": "When chat message received",
       "webhookId": "59a4fc6e-12b5-41f3-a064-865732315445"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageText }}",
+        "options": {
+          "systemMessage": "=You are a multilingual expense tracking assistant. Detect the user's language and ALWAYS respond in that language.\n\nAnalyze the user message and return ONLY valid JSON (no markdown, no backticks, no explanation). Use one of these schemas:\n\nINTENTS:\n1. {\"intent\":\"record_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":null,\"recurring\":null,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n2. {\"intent\":\"check_budget\",\"category\":null,\"replyText\":\"message asking to check budget\"}\n3. {\"intent\":\"set_budget\",\"category\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"period\":\"monthly\",\"replyText\":\"confirmation message\"}\n4. {\"intent\":\"get_report\",\"period\":\"week|month|year\",\"replyText\":\"message asking for report\"}\n5. {\"intent\":\"split_expense\",\"date\":\"YYYY-MM-DD\",\"description\":\"string\",\"amount\":number,\"currency\":\"IDR\",\"category\":\"string\",\"splitWith\":\"profileName\",\"splitType\":\"equal\",\"replyText\":\"confirmation message\"}\n6. {\"intent\":\"list_recurring\",\"replyText\":\"message\"}\n7. {\"intent\":\"cancel_recurring\",\"description\":\"string\",\"replyText\":\"message\"}\n8. {\"intent\":\"merge_report\",\"profiles\":[],\"period\":\"month\",\"replyText\":\"message\"}\n9. {\"intent\":\"help\",\"replyText\":\"help text in user language\"}\n\n\n10. {\"intent\":\"record_income\",\"amount\":number,\"description\":\"string\",\"source\":\"salary|freelance|investment|business|other\",\"date\":\"YYYY-MM-DD\",\"currency\":\"IDR\",\"recurring\":false,\"notes\":\"\",\"replyText\":\"confirmation message\"}\n11. {\"intent\":\"check_balance\",\"period\":\"this_month|last_month|this_year\",\"replyText\":\"message\"}\nCATEGORIES (use exactly): Makanan & Minuman, Transportasi, Tagihan, Hiburan, Belanja, Kesehatan, Langganan, Lain-lain\n\nRULES:\n- \"k\" suffix = x1000 (45k = 45000), \"rb\" suffix = x1000 (25rb = 25000)\n- \"jt\" or \"juta\" = x1000000 (1.5jt = 1500000)\n- if amount is contain formula please solve first (593341+44000\n=637341), please make sure you calculate right number, because this is financial of the user\n- Default currency: IDR\n- If no date specified, use {{ $now }} datetime without converting to UTC, use as is\n- Auto-detect category from context (food words -> Makanan & Minuman, transport -> Transportasi, etc.)\n- For splits: parse \"@ProfileName\" or \"split with ProfileName\" or \"bagi dengan ProfileName\"\n- For recurring: detect \"berulang\", \"recurring\", \"tiap bulan\", \"every month\", \"bulanan\"\n\n- For income: \"terima gaji\", \"dapat freelance\", \"pendapatan\", \"income\", \"masuk uang\", \"dividen\", \"bayaran\" → use record_income intent, source: salary=gaji, freelance=freelance/proyek, investment=investasi/dividen/saham, business=bisnis/jualan\n- For balance: \"saldo\", \"net balance\", \"cashflow\", \"income vs pengeluaran\", \"berapa sisa\" → use check_balance intent\n- ALWAYS include replyText with a human-friendly confirmation in the user's language \n- Return ONLY the JSON object, nothing else\n\n\\n\\n*PLEASE ALWAYS REMEMBER NOW IS {{ $now }} AND TODAY IS {{ $today }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1472,
+        11920
+      ],
+      "id": "10ff29a6-1490-420a-9d64-97bff286bdfa",
+      "name": "AI Agent (Groq)"
+    },
+    {
+      "parameters": {
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        14272
+      ],
+      "id": "20078a56-3599-4044-8c3d-11759922ff06",
+      "name": "Get Spreadsheet detail",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.spreadsheetId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [\n    {\n      \"repeatCell\": {\n        \"range\": {\n          \"sheetId\": {{ $json.sheets.find(item => item.properties.title.includes(\"Dashboard\")).properties.sheetId }},\n          \"startRowIndex\": 2,\n          \"endRowIndex\": 9,\n          \"startColumnIndex\": 2,\n          \"endColumnIndex\": 4\n        },\n        \"cell\": {\n          \"userEnteredFormat\": {\n            \"numberFormat\": {\n              \"type\": \"NUMBER\",\n              \"pattern\": \"#,##0\"\n            }\n          }\n        },\n        \"fields\": \"userEnteredFormat.numberFormat\"\n      }\n    }\n  ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -544,
+        14272
+      ],
+      "id": "6a8df140-018c-420d-8157-8c2a41616594",
+      "name": "Format Number of Dashboard",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "36FAVfvsRenvGyJc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3744,
+        13456
+      ],
+      "id": "b083bc0e-9f70-463d-bc8e-a869fe1987f2",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {
+          "maxTokensToSample": 2048,
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        12112
+      ],
+      "id": "558bc149-0b5b-4966-80c0-891e81deae8a",
+      "name": "Groq Chat Model intent",
+      "credentials": {
+        "groqApi": {
+          "id": "m5NPNO02GxojmMO8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Check Awaiting Profile').item.json.userId }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1584,
+        12112
+      ],
+      "id": "56005b01-e007-4850-b9ef-230f58a0d2a9",
+      "name": "Simple Memory intent",
+      "disabled": true
     }
   ],
   "pinData": {},
@@ -2695,7 +2778,7 @@
       "main": [
         [
           {
-            "node": "Register User in Master",
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
@@ -2771,6 +2854,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "AI Agent (Gemini)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -2797,17 +2887,6 @@
       ]
     },
     "AI Agent (Ollama)": {
-      "main": [
-        [
-          {
-            "node": "Parse AI Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent (Groq)": {
       "main": [
         [
           {
@@ -2855,7 +2934,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent (Groq)",
+            "node": "AI Agent",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -3356,9 +3435,9 @@
       "main": [
         [
           {
-            "node": "Register User in Master",
+            "node": "Merge1",
             "type": "main",
-            "index": 0
+            "index": 2
           }
         ]
       ]
@@ -3422,7 +3501,7 @@
       "ai_memory": [
         [
           {
-            "node": "AI Agent (Groq)",
+            "node": "AI Agent",
             "type": "ai_memory",
             "index": 0
           }
@@ -3435,28 +3514,6 @@
           {
             "node": "Extract Report Analysis",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Groq Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Simple Memory1": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
             "index": 0
           }
         ]
@@ -3527,15 +3584,86 @@
           }
         ]
       ]
+    },
+    "AI Agent (Groq)": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Spreadsheet detail": {
+      "main": [
+        [
+          {
+            "node": "Format Number of Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Number of Dashboard": {
+      "main": [
+        []
+      ]
+    },
+    "Setup Month Sheet Headers": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Register User in Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model intent": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Groq)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory intent": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (Groq)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "b8e01137-e04c-43ea-b868-4a8fb3a64db5",
+  "versionId": "03e0bd48-f128-48c9-99ea-3a52115efac2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "707092ed3a35ea3f554e1be6a66295e3800621eff6a827de689cbe34c6f5a4c8"
